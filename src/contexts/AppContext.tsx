@@ -1,6 +1,4 @@
-
-
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo, useState } from 'react';
 import { 
     TestProfile, 
     Question, 
@@ -603,6 +601,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     state.articles.find(article => article.id === state.activeArticleId),
     [state.articles, state.activeArticleId]
   );
+
+  // Force dark mode always true.
+  const [] = useState(true);
+  
+  // Replace toggle with a no-op so the button has no effect.
 
   return (
     <AppContext.Provider value={{ state, dispatch, translate, activeProfile, activeFlashcardDeck, activeArticle }}>
