@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   // THE ONLY CHANGE NEEDED IS HERE:
-  base: "/macies.lv/",
+  base: "/",
 
   plugins: [react()],
   
