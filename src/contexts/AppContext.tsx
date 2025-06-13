@@ -591,24 +591,4 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     state.articles.find(article => article.id === state.activeArticleId),
     [state.articles, state.activeArticleId]
   );
-
-  // Force dark mode always true.
-  const [] = useState(true);
-  
-  // Replace toggle with a no-op so the button has no effect.
-
-  return (
-    <AppContext.Provider value={{ state, dispatch, translate, activeProfile, activeFlashcardDeck, activeArticle }}>
-      {children}
-    </AppContext.Provider>
-  );
-};
-
-// Custom Hook
-export const useAppContext = (): AppContextProps => {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
 };
