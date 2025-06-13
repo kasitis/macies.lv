@@ -111,13 +111,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <LayoutContainer>
-      <Header />
-      <Navigation />
-      <main className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-lg shadow-xl w-full min-h-[60vh]">
-        {children}
-      </main>
-    </LayoutContainer>
+    <div className="dark min-h-screen">
+      <LayoutContainer>
+        <Header />
+        <Navigation />
+        <main className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-lg shadow-xl w-full min-h-[60vh]">
+          {children}
+        </main>
+      </LayoutContainer>
+    </div>
   );
 };
 
