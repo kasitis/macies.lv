@@ -540,16 +540,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     dispatch({ type: 'LOAD_INITIAL_DATA', payload: { testProfiles, generalSettings: loadedGeneralSettings, flashcardDecks, articles, articleProgress } });
   }, []);
 
-  useEffect(() => {
-    if (state.generalSettings.darkMode === true) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    document.documentElement.lang = state.generalSettings.currentLanguage;
-  }, [state.generalSettings.darkMode, state.generalSettings.currentLanguage]);
-
-
   const translate = useCallback((key: string, replacements: Record<string, string | number> = {}): string => {
     const langPack = translations[state.generalSettings.currentLanguage] || translations[Language.EN];
     let text: string;
