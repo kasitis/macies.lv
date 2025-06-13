@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  // Updated base for production deployment:
-  base: "/",
+  // THE ONLY CHANGE NEEDED IS HERE:
+  base: "/macies.lv/",
 
   plugins: [react()],
   
