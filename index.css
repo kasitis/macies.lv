@@ -1,5 +1,6 @@
- /* Minimal style placeholder */
+/* Minimal style placeholder */
 body {
     background-color: #fff;
     margin: 0;
+    @apply dark:bg-slate-950;
 }
