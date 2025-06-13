@@ -1,0 +1,6 @@
+{
+  "name": "Mācies.lv Quiz App",
+  "description": "A React-based interactive quiz application with question management, statistics, and customizable settings. Supports multiple languages and data persistence in browser local storage.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
