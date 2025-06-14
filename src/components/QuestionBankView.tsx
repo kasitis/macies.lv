@@ -87,8 +87,21 @@ const QuestionBankView: React.FC = () => {
   };
 
   const handleExportJson = () => {
-    // This function looks fine, no types needed here.
-  };
+  if (!activeProfile) return;
+  if (activeProfile.questions.length === 0) {
+    dispatch({type: 'OPEN_MESSAGE_MODAL', payload: { titleKey: 'msgNoDataToExport', textKey: 'msgNoDataToExportDetail', textReplacements: { name: activeProfile.name } }});
+    return;
+  }
+  const dataStr = JSON.stringify(activeProfile.questions, null, 2);
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+  const exportFileDefaultName = `macies_lv_questions_${activeProfile.name.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.json`;
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', exportFileDefaultName);
+  linkElement.click();
+  linkElement.remove();
+  dispatch({type: 'OPEN_MESSAGE_MODAL', payload: { titleKey: 'msgExported', textKey: 'msgExportedDetail', textReplacements: {filename: exportFileDefaultName, testName: activeProfile.name} }});
+};
 
   const handleImportJson = (event: ChangeEvent<HTMLInputElement>) => {
     if (!activeProfile) return;
