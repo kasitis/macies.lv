@@ -247,7 +247,7 @@ const TestSettingsView: React.FC = () => {
                             handleSettingChange('numQuestions', 1);
                         }
                     }}
-                    className={`${inputBaseClasses} w-20 text-center disabled:bg-slate-100 dark:disabled:bg-slate-700/30 disabled:cursor-not-allowed`}
+                    className={`${inputBaseClasses} w-18 text-center disabled:bg-slate-100 dark:disabled:bg-slate-700/30 disabled:cursor-not-allowed`}
                 />
                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total available questions: {numQuestionsInProfile}</p>
             </div>
@@ -258,10 +258,10 @@ const TestSettingsView: React.FC = () => {
             <div className="pt-5 space-y-3">
                 <h3 className="text-md font-semibold text-slate-700 dark:text-slate-300">{translate('settingsPerTopicTitle')}</h3>
                 {uniqueTopics.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-400">{translate('qBankNoQuestions', { name: activeProfile.name })}</p>}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {uniqueTopics.map(topic => (
-                        <div key={topic} className="flex items-center justify-between bg-white dark:bg-slate-800 p-1.5 rounded-md border border-slate-200 dark:border-slate-700">
-                            <div className="flex flex-col min-w-0">
+                        <div key={topic} className="flex items-center bg-white dark:bg-slate-800 p-1.5 rounded-md border border-slate-200 dark:border-slate-700">
+                            <div className="flex-1 flex flex-col min-w-0 mr-3">
                                 <label 
                                     htmlFor={`topic-q-count-${topic.replace(/\s/g, '-')}`} 
                                     className="text-sm text-slate-700 dark:text-slate-300 truncate" 
@@ -271,17 +271,19 @@ const TestSettingsView: React.FC = () => {
                                 </label>
                                 <span className="text-xs text-slate-500 dark:text-slate-400">({questionsByTopic[topic]})</span>
                             </div>
-                            <input
-                                type="number"
-                                id={`topic-q-count-${topic.replace(/\s/g, '-')}`}
-                                min="0"
-                                max={questionsByTopic[topic] || 0}
-                                value={currentSettings.topicQuestionCounts?.[topic] || (document.activeElement?.id === `topic-q-count-${topic.replace(/\s/g, '-')}` ? '' : '0')}
-                                onChange={(e) => handleTopicCountChange(topic, e.target.value)}
-                                onFocus={(e) => e.target.select()}
-                                className={`${inputBaseClasses} w-20 text-center py-1`}
-                                aria-label={`Number of questions for topic ${topic}`}
-                            />
+                            <div className="w-20 flex-shrink-0">
+                                <input
+                                    type="number"
+                                    id={`topic-q-count-${topic.replace(/\s/g, '-')}`}
+                                    min="0"
+                                    max={questionsByTopic[topic] || 0}
+                                    value={currentSettings.topicQuestionCounts?.[topic] || (document.activeElement?.id === `topic-q-count-${topic.replace(/\s/g, '-')}` ? '' : '0')}
+                                    onChange={(e) => handleTopicCountChange(topic, e.target.value)}
+                                    onFocus={(e) => e.target.select()}
+                                    className={`${inputBaseClasses} w-full text-center py-1`}
+                                    aria-label={`Number of questions for topic ${topic}`}
+                                />
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -332,7 +334,7 @@ const TestSettingsView: React.FC = () => {
                                 handleSettingChange('timerDurationMinutes', 1);
                             }
                         }}
-                        className={`${inputBaseClasses} w-20 text-center`}
+                        className={`${inputBaseClasses} w-18 text-center`}
                     />
                 </div>
             )}
@@ -399,5 +401,3 @@ const TestSettingsView: React.FC = () => {
 
 
 export default TestSettingsView;
-
-
