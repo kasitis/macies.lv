@@ -593,7 +593,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     state.articles.find(article => article.id === state.activeArticleId),
     [state.articles, state.activeArticleId]
   );
-    // Force dark mode always true.
+
+  // Force dark mode always true.
   const [darkMode] = useState(true);
 
   // New no-op toggle
