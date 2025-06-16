@@ -1,49 +1,155 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { AnswerNumberingStyle, TestSpecificSettings, AppView } from '@/types.ts';
 import { DEFAULT_TEST_SPECIFIC_SETTINGS } from '@/constants.ts';
 import Icon from './Icon.tsx';
 
+type SelectionMode = 'all' | 'total' | 'topic';
 
 const TestSettingsView: React.FC = () => {
   const { state, dispatch, translate, activeProfile } = useAppContext();
   
   const [currentSettings, setCurrentSettings] = useState<TestSpecificSettings>(
-    activeProfile ? activeProfile.settings : DEFAULT_TEST_SPECIFIC_SETTINGS
+    activeProfile ? { ...DEFAULT_TEST_SPECIFIC_SETTINGS, ...activeProfile.settings } : { ...DEFAULT_TEST_SPECIFIC_SETTINGS }
   );
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>('all');
 
-  const settingsSignature = useMemo(() => 
-    JSON.stringify(activeProfile?.settings || DEFAULT_TEST_SPECIFIC_SETTINGS), 
-    [activeProfile?.settings]
-  );
+  const questionsByTopic = useMemo(() => {
+    if (!activeProfile) return {};
+    return activeProfile.questions.reduce((acc, q) => {
+      const topicName = q.topic || translate('qBankNotSpecified');
+      if (!acc[topicName]) acc[topicName] = 0;
+      acc[topicName]++;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [activeProfile, translate]);
+
+  const uniqueTopics = useMemo(() => Object.keys(questionsByTopic).sort(), [questionsByTopic]);
 
   useEffect(() => {
     if (activeProfile) {
-      setCurrentSettings(prev => ({
-        ...DEFAULT_TEST_SPECIFIC_SETTINGS,
-        ...prev, 
-        ...activeProfile.settings 
-      }));
+      const initialSettings = { 
+        ...DEFAULT_TEST_SPECIFIC_SETTINGS, 
+        ...activeProfile.settings,
+        topicQuestionCounts: activeProfile.settings.topicQuestionCounts || {}, // Ensure it's an object
+      };
+      setCurrentSettings(initialSettings);
+      
+      if (initialSettings.useAllQuestions) {
+        setSelectionMode('all');
+      } else if (initialSettings.selectByTopic && Object.keys(initialSettings.topicQuestionCounts).length > 0) {
+        setSelectionMode('topic');
+      } else {
+        setSelectionMode('total');
+      }
     } else if(state.activeView === AppView.TEST_SETTINGS) { 
-      setCurrentSettings(DEFAULT_TEST_SPECIFIC_SETTINGS); 
+      setCurrentSettings({ ...DEFAULT_TEST_SPECIFIC_SETTINGS, topicQuestionCounts: {} }); 
+      setSelectionMode('all');
       dispatch({ type: 'SET_VIEW', payload: { view: AppView.MY_TESTS, activeTestProfileId: null } });
     }
-  }, [activeProfile, settingsSignature, state.activeView, dispatch]);
+  }, [activeProfile, state.activeView, dispatch]);
 
   const handleSettingChange = (key: keyof TestSpecificSettings, value: any) => {
     setCurrentSettings(prev => ({ ...prev, [key]: value }));
   };
+
+  const handleSelectionModeChange = (mode: SelectionMode) => {
+    setSelectionMode(mode);
+    let newUseAll = false;
+    let newSelectByTopic = false;
+
+    if (mode === 'all') {
+        newUseAll = true;
+    } else if (mode === 'total') {
+        newSelectByTopic = false;
+    } else { // topic
+        newSelectByTopic = true;
+    }
+    
+    setCurrentSettings(prev => {
+        const updatedSettings = {
+            ...prev,
+            useAllQuestions: newUseAll,
+            selectByTopic: newSelectByTopic,
+        };
+        if (mode === 'topic') {
+            const initializedCounts = { ...prev.topicQuestionCounts };
+            uniqueTopics.forEach(topic => {
+                if (initializedCounts[topic] === undefined) {
+                    initializedCounts[topic] = 0;
+                }
+            });
+            updatedSettings.topicQuestionCounts = initializedCounts;
+        }
+        return updatedSettings;
+    });
+  };
+
+
+  const handleTopicCountChange = (topic: string, countStr: string) => {
+    // Handle empty string case
+    if (countStr === '') {
+        setCurrentSettings(prev => ({
+            ...prev,
+            topicQuestionCounts: { ...prev.topicQuestionCounts, [topic]: 0 }
+        }));
+        return;
+    }
+
+    const count = parseInt(countStr, 10);
+    const available = questionsByTopic[topic] || 0;
+    
+    if (isNaN(count) || count < 0) {
+        setCurrentSettings(prev => ({
+            ...prev,
+            topicQuestionCounts: { ...prev.topicQuestionCounts, [topic]: 0 }
+        }));
+        return;
+    }
+    
+    if (count > available) {
+        dispatch({type: 'OPEN_MESSAGE_MODAL', payload: {titleKey: 'msgValidationError', textKey: 'msgErrorTopicCountExceedsAvailable', textReplacements: { topicName: topic, available: available, selected: count}}});
+        setCurrentSettings(prev => ({
+            ...prev,
+            topicQuestionCounts: { ...prev.topicQuestionCounts, [topic]: available }
+        }));
+        return;
+    }
+
+    setCurrentSettings(prev => ({
+        ...prev,
+        topicQuestionCounts: {
+            ...prev.topicQuestionCounts,
+            [topic]: count
+        }
+    }));
+  };
   
   const handleSaveSettings = () => {
     if (activeProfile) {
-      if(currentSettings.enableTimer && currentSettings.timerDurationMinutes <= 0){
+      let settingsToSave = { ...currentSettings };
+
+      // Ensure numQuestions has a valid value before saving
+      if (!settingsToSave.numQuestions || settingsToSave.numQuestions < 1) {
+        settingsToSave.numQuestions = 1;
+      }
+
+      if(settingsToSave.enableTimer && settingsToSave.timerDurationMinutes <= 0){
         dispatch({type: 'OPEN_MESSAGE_MODAL', payload: {titleKey: 'msgValidationError', textKey: 'timerMustBePositive'}});
         return;
       }
+
+      if (settingsToSave.selectByTopic) {
+        const totalSelectedByTopic = Object.values(settingsToSave.topicQuestionCounts || {}).reduce((sum, num) => sum + (Number(num) || 0), 0);
+        if (totalSelectedByTopic === 0) {
+          dispatch({ type: 'OPEN_MESSAGE_MODAL', payload: { titleKey: 'msgValidationError', textKey: 'msgErrorNoQuestionsSelectedByTopic' } });
+          return;
+        }
+      }
+      
       dispatch({ 
         type: 'UPDATE_TEST_SPECIFIC_SETTINGS', 
-        payload: { profileId: activeProfile.id, settings: currentSettings } 
+        payload: { profileId: activeProfile.id, settings: settingsToSave } 
       });
       dispatch({type: 'OPEN_MESSAGE_MODAL', payload: {titleKey: 'msgSettingsSaved', textKey: 'msgSettingsSavedDetail'}});
     } else {
@@ -52,6 +158,10 @@ const TestSettingsView: React.FC = () => {
   };
   
   const numQuestionsInProfile = activeProfile?.questions?.length || 0;
+  const totalSelectedByTopic = useMemo(() => {
+    return Object.values(currentSettings.topicQuestionCounts || {}).reduce((sum, count) => sum + (Number(count) || 0), 0);
+  }, [currentSettings.topicQuestionCounts]);
+
   const inputBaseClasses = "block w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-sm bg-white dark:bg-slate-700/50 text-slate-900 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400";
   const toggleBaseClasses = "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900";
   const toggleEnabledClasses = "bg-indigo-600 dark:bg-indigo-500";
@@ -62,6 +172,12 @@ const TestSettingsView: React.FC = () => {
   if (!activeProfile) {
     return <p className="text-center p-4 text-slate-600 dark:text-slate-400">{translate('msgError')}: No active test profile. Redirecting...</p>;
   }
+
+  const selectionModeTranslations: Record<SelectionMode, string> = {
+    all: 'settingsSelectionModeAll',
+    total: 'settingsSelectionModeTotalNum',
+    topic: 'settingsSelectionModeByTopic'
+};
 
   return (
     <div className="space-y-6 max-w-lg mx-auto">
@@ -78,8 +194,105 @@ const TestSettingsView: React.FC = () => {
       </div>
       
       <div className="space-y-5 divide-y divide-slate-200 dark:divide-slate-700">
-        {/* Timer Settings */}
+        {/* Question Selection Mode */}
         <div className="pt-5 first:pt-0">
+            <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">{translate('settingsSelectionModeTitle')}</label>
+            <div className="space-y-2">
+                {(['all', 'total', 'topic'] as SelectionMode[]).map(mode => (
+                    <div key={mode} className="flex items-center">
+                        <input 
+                            type="radio"
+                            id={`selection-mode-${mode}`}
+                            name="selectionMode"
+                            value={mode}
+                            checked={selectionMode === mode}
+                            onChange={() => handleSelectionModeChange(mode)}
+                            className="h-4 w-4 text-indigo-600 border-slate-300 dark:border-slate-500 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:bg-slate-700 dark:checked:bg-indigo-500"
+                        />
+                        <label htmlFor={`selection-mode-${mode}`} className="ml-2 block text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                            {translate(selectionModeTranslations[mode])}
+                        </label>
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        {/* Total Number of Questions (if mode is 'total') */}
+        {selectionMode === 'total' && (
+            <div className="pt-5">
+                <label htmlFor="num-questions" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">{translate('settingsNumQuestions')}</label>
+                <input 
+                    type="number" 
+                    id="num-questions" 
+                    min="1" 
+                    max={numQuestionsInProfile > 0 ? numQuestionsInProfile : undefined}
+                    value={currentSettings.numQuestions || ''}
+                    disabled={numQuestionsInProfile === 0 || currentSettings.useAllQuestions || currentSettings.selectByTopic}
+                    onChange={(e) => {
+                        const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                        if (val === '') {
+                            handleSettingChange('numQuestions', '');
+                        } else {
+                            if (numQuestionsInProfile > 0 && val > numQuestionsInProfile) {
+                                handleSettingChange('numQuestions', numQuestionsInProfile);
+                            } else if (val < 1) {
+                                handleSettingChange('numQuestions', '');
+                            } else {
+                                handleSettingChange('numQuestions', val);
+                            }
+                        }
+                    }}
+                    onBlur={() => {
+                        if (!currentSettings.numQuestions) {
+                            handleSettingChange('numQuestions', 1);
+                        }
+                    }}
+                    className={`${inputBaseClasses} w-28 disabled:bg-slate-100 dark:disabled:bg-slate-700/30 disabled:cursor-not-allowed`}
+                />
+                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total available questions: {numQuestionsInProfile}</p>
+            </div>
+        )}
+
+        {/* Questions per Topic (if mode is 'topic') */}
+        {selectionMode === 'topic' && (
+            <div className="pt-5 space-y-3">
+                <h3 className="text-md font-semibold text-slate-700 dark:text-slate-300">{translate('settingsPerTopicTitle')}</h3>
+                {uniqueTopics.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-400">{translate('qBankNoQuestions', { name: activeProfile.name })}</p>}
+                <div className="space-y-2">
+                    {uniqueTopics.map(topic => (
+                        <div key={topic} className="flex items-center h-10">
+                            <label 
+                                htmlFor={`topic-q-count-${topic.replace(/\s/g, '-')}`} 
+                                className="w-[350px] text-sm text-slate-700 dark:text-slate-300 truncate pr-4" 
+                                title={topic}
+                            >
+                                {translate('settingsTopicQuestionsLabel', { topicName: topic, availableCount: questionsByTopic[topic] || 0 })}
+                            </label>
+                            <input
+                                type="number"
+                                id={`topic-q-count-${topic.replace(/\s/g, '-')}`}
+                                min="0"
+                                max={questionsByTopic[topic] || 0}
+                                value={currentSettings.topicQuestionCounts?.[topic] || (document.activeElement?.id === `topic-q-count-${topic.replace(/\s/g, '-')}` ? '' : '0')}
+                                onChange={(e) => handleTopicCountChange(topic, e.target.value)}
+                                onFocus={(e) => e.target.select()}
+                                className={`${inputBaseClasses} w-24 text-center`}
+                                aria-label={`Number of questions for topic ${topic}`}
+                            />
+                        </div>
+                    ))}
+                </div>
+                {uniqueTopics.length > 0 && (
+                     <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 pt-2 text-right">
+                        {translate('settingsTotalTopicQuestions', { count: totalSelectedByTopic })}
+                    </p>
+                )}
+            </div>
+        )}
+
+
+        {/* Timer Settings */}
+        <div className="pt-5">
             <div className="flex items-center justify-between p-1">
                 <label htmlFor="enable-timer-toggle" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none">{translate('settingsEnableTimer')}</label>
                 <button
@@ -102,15 +315,26 @@ const TestSettingsView: React.FC = () => {
                         type="number" 
                         id="timer-duration" 
                         min="1"
-                        value={currentSettings.timerDurationMinutes}
-                        onChange={(e) => handleSettingChange('timerDurationMinutes', parseInt(e.target.value) || 1)}
+                        value={currentSettings.timerDurationMinutes || ''}
+                        onChange={(e) => {
+                            const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                            if (val === '') {
+                                handleSettingChange('timerDurationMinutes', '');
+                            } else {
+                                handleSettingChange('timerDurationMinutes', val < 1 ? '' : val);
+                            }
+                        }}
+                        onBlur={() => {
+                            if (!currentSettings.timerDurationMinutes) {
+                                handleSettingChange('timerDurationMinutes', 1);
+                            }
+                        }}
                         className={`${inputBaseClasses} w-28`}
                     />
                 </div>
             )}
         </div>
-
-        {/* Existing Settings */}
+        
         <div className="pt-5">
             <label htmlFor="answer-numbering-style" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">{translate('settingsAnswerNumbering')}</label>
             <select 
@@ -126,38 +350,6 @@ const TestSettingsView: React.FC = () => {
             </select>
         </div>
         
-        <div className="pt-5">
-            <label htmlFor="num-questions" className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">{translate('settingsNumQuestions')}</label>
-            <div className="flex items-center mt-1">
-            <input 
-                type="number" 
-                id="num-questions" 
-                min="1" 
-                max={numQuestionsInProfile > 0 ? numQuestionsInProfile : undefined}
-                value={currentSettings.useAllQuestions ? numQuestionsInProfile : currentSettings.numQuestions}
-                disabled={currentSettings.useAllQuestions || numQuestionsInProfile === 0}
-                onChange={(e) => {
-                    let val = parseInt(e.target.value);
-                    if (isNaN(val) || val < 1) val = 1;
-                    if (numQuestionsInProfile > 0 && val > numQuestionsInProfile) val = numQuestionsInProfile;
-                    handleSettingChange('numQuestions', val);
-                }}
-                className={`${inputBaseClasses} w-28 disabled:bg-slate-100 dark:disabled:bg-slate-700/30 disabled:cursor-not-allowed`}
-            />
-            <label htmlFor="all-questions-checkbox" className="ml-4 flex items-center cursor-pointer text-sm text-slate-700 dark:text-slate-300 select-none">
-                <input 
-                type="checkbox"
-                id="all-questions-checkbox"
-                checked={currentSettings.useAllQuestions}
-                disabled={numQuestionsInProfile === 0}
-                onChange={(e) => handleSettingChange('useAllQuestions', e.target.checked)}
-                className="h-4 w-4 rounded mr-1.5 border-slate-400 dark:border-slate-500 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-500 dark:focus:ring-indigo-400 cursor-pointer disabled:cursor-not-allowed"
-                /> 
-                {translate('settingsAllQuestions')} ({numQuestionsInProfile})
-            </label>
-            </div>
-        </div>
-
         <div className="pt-5 flex items-center justify-between p-1">
             <label htmlFor="randomize-questions-toggle" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none">{translate('settingsRandomQuestions')}</label>
             <button
@@ -201,5 +393,6 @@ const TestSettingsView: React.FC = () => {
     </div>
   );
 };
+
 
 export default TestSettingsView;
