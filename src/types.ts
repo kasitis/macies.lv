@@ -56,11 +56,6 @@ export interface Question {
   optionsRendered?: QuestionOption[]; 
 }
 
-export interface Option {
-  text: string;
-  imageURL: string | null;
-}
-
 export enum AnswerNumberingStyle {
   NUMBERS = 'numbers',
   LETTERS_UPPER = 'letters_upper',
@@ -71,6 +66,8 @@ export enum AnswerNumberingStyle {
 export interface TestSpecificSettings {
   numQuestions: number;
   useAllQuestions: boolean;
+  selectByTopic: boolean; // New: True if using topicQuestionCounts
+  topicQuestionCounts: Record<string, number>; // New: { [topicName: string]: count }
   randomizeQuestions: boolean;
   randomizeAnswers: boolean;
   answerNumberingStyle: AnswerNumberingStyle;
