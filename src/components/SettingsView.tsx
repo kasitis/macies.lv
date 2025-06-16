@@ -258,16 +258,19 @@ const TestSettingsView: React.FC = () => {
             <div className="pt-5 space-y-3">
                 <h3 className="text-md font-semibold text-slate-700 dark:text-slate-300">{translate('settingsPerTopicTitle')}</h3>
                 {uniqueTopics.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-400">{translate('qBankNoQuestions', { name: activeProfile.name })}</p>}
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {uniqueTopics.map(topic => (
-                        <div key={topic} className="flex items-center h-10">
-                            <label 
-                                htmlFor={`topic-q-count-${topic.replace(/\s/g, '-')}`} 
-                                className="w-[350px] text-sm text-slate-700 dark:text-slate-300 truncate pr-4" 
-                                title={topic}
-                            >
-                                {translate('settingsTopicQuestionsLabel', { topicName: topic, availableCount: questionsByTopic[topic] || 0 })}
-                            </label>
+                        <div key={topic} className="flex items-center justify-between bg-white dark:bg-slate-800 p-2.5 rounded-md border border-slate-200 dark:border-slate-700">
+                            <div className="flex-1 min-w-0 mr-3">
+                                <label 
+                                    htmlFor={`topic-q-count-${topic.replace(/\s/g, '-')}`} 
+                                    className="text-sm text-slate-700 dark:text-slate-300 truncate flex flex-col" 
+                                    title={topic}
+                                >
+                                    <span>{topic.length > 20 ? topic.substring(0, 20) + '...' : topic}</span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-400">({questionsByTopic[topic] || 0})</span>
+                                </label>
+                            </div>
                             <input
                                 type="number"
                                 id={`topic-q-count-${topic.replace(/\s/g, '-')}`}
@@ -276,14 +279,14 @@ const TestSettingsView: React.FC = () => {
                                 value={currentSettings.topicQuestionCounts?.[topic] || (document.activeElement?.id === `topic-q-count-${topic.replace(/\s/g, '-')}` ? '' : '0')}
                                 onChange={(e) => handleTopicCountChange(topic, e.target.value)}
                                 onFocus={(e) => e.target.select()}
-                                className={`${inputBaseClasses} w-24 text-center`}
+                                className={`${inputBaseClasses} w-16 text-center py-1`}
                                 aria-label={`Number of questions for topic ${topic}`}
                             />
                         </div>
                     ))}
                 </div>
                 {uniqueTopics.length > 0 && (
-                     <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 pt-2 text-right">
+                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 pt-2">
                         {translate('settingsTotalTopicQuestions', { count: totalSelectedByTopic })}
                     </p>
                 )}
