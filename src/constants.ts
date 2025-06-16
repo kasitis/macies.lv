@@ -25,13 +25,13 @@ export const DEFAULT_GENERAL_APP_SETTINGS: GeneralAppSettings = {
 export const DEFAULT_TEST_SPECIFIC_SETTINGS: TestSpecificSettings = {
   numQuestions: 10,
   useAllQuestions: true, 
-  selectByTopic: false,  
-  topicQuestionCounts: {}, 
   randomizeQuestions: true,
   randomizeAnswers: true,
   answerNumberingStyle: AnswerNumberingStyle.NUMBERS,
   enableTimer: false,
   timerDurationMinutes: 30,
+  selectByTopic: false,  
+  topicQuestionCounts: {}, 
 };
 
 export const APP_FIELDS_FOR_MAPPING: MappedAppField[] = [
