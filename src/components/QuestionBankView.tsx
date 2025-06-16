@@ -313,6 +313,3 @@ const QuestionBankView: React.FC = () => {
 };
 
 export default QuestionBankView;
-
-
-export default QuestionBankView;
