@@ -1,6 +1,6 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
-import { Question, AppView, QuestionType, Option } from '@/types';
+import { Question, AppView, QuestionType, QuestionOption } from '@/types'; // updated import, removed Option
 import Icon from './Icon';
 
 // Declare XLSX on the window object for use with the script tag from index.html
@@ -36,7 +36,7 @@ const QuestionBankView: React.FC = () => {
       const matchesSearch = 
         q.question.toLowerCase().includes(searchLower) ||
         (q.topic && q.topic.toLowerCase().includes(searchLower)) ||
-        q.options.some((opt: Option) => opt.text.toLowerCase().includes(searchLower));
+        q.options.some((opt: QuestionOption) => opt.text.toLowerCase().includes(searchLower));
       const matchesTopic = !topicFilter || q.topic === topicFilter;
       return matchesSearch && matchesTopic;
     }).sort((a: Question, b: Question) => a.question.localeCompare(b.question));
@@ -122,7 +122,7 @@ const QuestionBankView: React.FC = () => {
                 q && q.id && q.question && Array.isArray(q.options) && 
                 q.hasOwnProperty('correctOptionText') && q.hasOwnProperty('type') &&
                 Object.values(QuestionType).includes(q.type) &&
-                q.options.every((opt: Option) => opt && typeof opt.text === 'string' && (opt.imageURL === null || typeof opt.imageURL === 'string'))
+                q.options.every((opt: QuestionOption) => opt && typeof opt.text === 'string' && (opt.imageURL === null || typeof opt.imageURL === 'string'))
               );
               if (allValid) {
                 dispatch({ type: 'SET_QUESTIONS_FOR_PROFILE', payload: {profileId: activeProfile.id, questions: importedData }});
@@ -271,7 +271,7 @@ const QuestionBankView: React.FC = () => {
                   <span className="mr-2">{translate('qBankTypeLabel')} <span className="font-semibold">{translate(`qType${q.type.split('-').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}` as any)}</span></span>
                   {q.type !== QuestionType.FILL_IN_THE_BLANK && <span>{translate('qBankAnswersCount')} <span className="font-semibold">{q.options.length}</span></span>}
                   {q.questionImageURL && <span className="inline-flex items-center"><Icon name="image" size="0.9em" className="text-green-500 dark:text-green-400 mr-0.5" /> {translate('qBankQuestionImageIndicator')}</span>}
-                  {(q.type === QuestionType.MULTIPLE_CHOICE && q.options.some((opt: Option) => opt.imageURL)) && <span className="inline-flex items-center"><Icon name="image" size="0.9em" className="text-blue-500 dark:text-blue-400 mr-0.5" /> {translate('qBankOptionImageIndicator')}</span>}
+                  {(q.type === QuestionType.MULTIPLE_CHOICE && q.options.some((opt: QuestionOption) => opt.imageURL)) && <span className="inline-flex items-center"><Icon name="image" size="0.9em" className="text-blue-500 dark:text-blue-400 mr-0.5" /> {translate('qBankOptionImageIndicator')}</span>}
                 </div>
                 <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">{translate('qBankCorrectIs')} {q.correctOptionText || translate('qBankNotSpecified')}</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{translate('qBankIdIs')} {q.id.substring(0,8)}...</p>
@@ -311,5 +311,8 @@ const QuestionBankView: React.FC = () => {
     </div>
   );
 };
+
+export default QuestionBankView;
+
 
 export default QuestionBankView;
