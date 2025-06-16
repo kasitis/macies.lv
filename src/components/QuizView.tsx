@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useAppContext } from '@/contexts/AppContext';
-import { Question, AppView, QuestionType, AnswerNumberingStyle, TestSpecificSettings, QuestionOption } from '@/types.ts';
+import { useAppContext } from '../contexts/AppContext.tsx';
+import { Question, AppView, QuestionType, AnswerNumberingStyle, TestSpecificSettings, QuestionOption } from '../types.ts';
 import Icon from './Icon.tsx';
+import { DEFAULT_TEST_SPECIFIC_SETTINGS } from '../constants.ts';
 
 const shuffleArray = <T,>(array: T[]): T[] => {
   const newArray = [...array];
@@ -16,11 +16,11 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 const getOptionPrefix = (style: AnswerNumberingStyle, index: number): string => {
     switch (style) {
         case AnswerNumberingStyle.NUMBERS:
-            return `${Number(index) + 1}. `;
+            return `${index + 1}. `;
         case AnswerNumberingStyle.LETTERS_UPPER:
-            return `${String.fromCharCode(65 + Number(index))}. `;
+            return `${String.fromCharCode(65 + index)}. `;
         case AnswerNumberingStyle.LETTERS_LOWER:
-            return `${String.fromCharCode(97 + Number(index))}. `;
+            return `${String.fromCharCode(97 + index)}. `;
         case AnswerNumberingStyle.NONE:
         default:
             return '';
@@ -53,13 +53,15 @@ const QuizView: React.FC = () => {
      if (!activeProfile || currentQuizQuestions.length === 0 || isSubmittingRef.current) return; 
      isSubmittingRef.current = true;
      
-     if(!isTimeUp && currentQuestionIndex < currentQuizQuestions.length) {
-        const currentQ = currentQuizQuestions[Number(currentQuestionIndex)];
-        if (currentQ.type === QuestionType.FILL_IN_THE_BLANK && (userAnswers[currentQuestionIndex] === null || String(userAnswers[currentQuestionIndex]).trim() === "")) {
-            dispatch({ type: 'OPEN_MESSAGE_MODAL', payload: { titleKey: 'msgAttention', textKey: 'msgPleaseAnswerLast' }});
-            isSubmittingRef.current = false;
-            return;
-        } else if ((currentQ.type === QuestionType.MULTIPLE_CHOICE || currentQ.type === QuestionType.TRUE_FALSE) && userAnswers[currentQuestionIndex] === null) {
+     // Validate that the current question is answered before submitting from the last page
+     if(!isTimeUp && currentQuestionIndex === currentQuizQuestions.length - 1) {
+        const currentQ = currentQuizQuestions[currentQuestionIndex];
+        const currentAnswer = userAnswers[currentQuestionIndex];
+        
+        const isBlankFillIn = currentQ.type === QuestionType.FILL_IN_THE_BLANK && (currentAnswer === null || String(currentAnswer).trim() === "");
+        const isUnselectedChoice = (currentQ.type === QuestionType.MULTIPLE_CHOICE || currentQ.type === QuestionType.TRUE_FALSE) && currentAnswer === null;
+
+        if (isBlankFillIn || isUnselectedChoice) {
             dispatch({ type: 'OPEN_MESSAGE_MODAL', payload: { titleKey: 'msgAttention', textKey: 'msgPleaseAnswerLast' }});
             isSubmittingRef.current = false;
             return;
@@ -70,12 +72,15 @@ const QuizView: React.FC = () => {
     currentQuizQuestions.forEach((q, index) => {
       const userAnswer = userAnswers[index];
       let isCorrect = false;
+      
       if (q.type === QuestionType.MULTIPLE_CHOICE || q.type === QuestionType.TRUE_FALSE) {
         if (typeof userAnswer === 'number' && q.optionsRendered && q.optionsRendered[userAnswer]) {
-          isCorrect = q.optionsRendered[userAnswer].text === q.correctOptionText;
+          const userText = q.optionsRendered[userAnswer].text.trim();
+          const correctText = q.correctOptionText.trim();
+          isCorrect = userText === correctText;
         }
       } else if (q.type === QuestionType.FILL_IN_THE_BLANK) {
-        if (typeof userAnswer === 'string') { 
+        if (typeof userAnswer === 'string') {
           isCorrect = userAnswer.trim().toLowerCase() === q.correctOptionText.trim().toLowerCase();
         }
       }
@@ -117,7 +122,6 @@ const QuizView: React.FC = () => {
     }
   }, [activeProfile, currentQuizQuestions, userAnswers, currentQuestionIndex, dispatch, currentTestSettings, quizStartTime]);
 
-
   const setupNewQuizAttempt = useCallback(() => {
     isSubmittingRef.current = false;
     if (!activeProfile || !activeProfile.questions || !activeProfile.settings) {
@@ -132,8 +136,9 @@ const QuizView: React.FC = () => {
     
     const profileQuestionsSource: Question[] = activeProfile.questions;
     const profileSettings: TestSpecificSettings = {
-      ...{ enableTimer: false, timerDurationMinutes: 30 }, 
-      ...activeProfile.settings
+      ...DEFAULT_TEST_SPECIFIC_SETTINGS, 
+      ...activeProfile.settings,
+      topicQuestionCounts: activeProfile.settings.topicQuestionCounts || {},
     };
     
     setCurrentTestSettings(profileSettings);
@@ -146,16 +151,59 @@ const QuizView: React.FC = () => {
       return;
     }
 
-    let questionsToUse = profileSettings.randomizeQuestions ? shuffleArray(profileQuestionsSource) : [...profileQuestionsSource];
+    let questionsToUse: Question[] = [];
+
+    if (profileSettings.useAllQuestions) {
+        questionsToUse = [...profileQuestionsSource];
+    } else if (profileSettings.selectByTopic && profileSettings.topicQuestionCounts && Object.keys(profileSettings.topicQuestionCounts).length > 0) {
+        const selectedByTopic: Question[] = [];
+        const topicsToSelectFrom = Object.entries(profileSettings.topicQuestionCounts);
+
+        for (const [topic, countStr] of topicsToSelectFrom) {
+            const countForTopic = Number(countStr) || 0;
+            if (countForTopic > 0) {
+                let questionsFromThisTopic = profileQuestionsSource.filter(q => (q.topic || translate('qBankNotSpecified')) === topic);
+                if (profileSettings.randomizeQuestions) {
+                    questionsFromThisTopic = shuffleArray(questionsFromThisTopic);
+                }
+                selectedByTopic.push(...questionsFromThisTopic.slice(0, Math.min(countForTopic, questionsFromThisTopic.length)));
+            }
+        }
+        questionsToUse = selectedByTopic;
+    } else { 
+        let allQuestionsForNumSelection = [...profileQuestionsSource];
+        if (profileSettings.randomizeQuestions) {
+             allQuestionsForNumSelection = shuffleArray(allQuestionsForNumSelection);
+        }
+        
+        const numToTake = profileSettings.numQuestions > 0 && profileSettings.numQuestions <= allQuestionsForNumSelection.length
+                          ? profileSettings.numQuestions 
+                          : (profileSettings.numQuestions <= 0 ? Math.min(10, allQuestionsForNumSelection.length) : allQuestionsForNumSelection.length);
+        
+        questionsToUse = allQuestionsForNumSelection.slice(0, numToTake);
+    }
     
-    let numToTake = questionsToUse.length;
-    if (!profileSettings.useAllQuestions && profileSettings.numQuestions > 0 && profileSettings.numQuestions < questionsToUse.length) {
-        numToTake = profileSettings.numQuestions;
-    } else if (!profileSettings.useAllQuestions && profileSettings.numQuestions <= 0) {
-        numToTake = Math.min(10, questionsToUse.length); 
+    if(profileSettings.randomizeQuestions && questionsToUse.length > 1){ 
+         questionsToUse = shuffleArray(questionsToUse);
     }
 
-    const preparedQuizQuestions = questionsToUse.slice(0, numToTake).map(q => {
+    // Ensure no repetition within the quiz (defensive programming for cases of duplicate question data)
+    const uniqueQuestions: Question[] = [];
+    const questionIds: Set<string> = new Set();
+    const finalQuestionCount = profileSettings.useAllQuestions ? questionsToUse.length : profileSettings.numQuestions;
+
+    for (const question of questionsToUse) {
+        if (!questionIds.has(question.id)) {
+            uniqueQuestions.push(question);
+            questionIds.add(question.id);
+        }
+        if (!profileSettings.useAllQuestions && uniqueQuestions.length >= finalQuestionCount) {
+            break;
+        }
+    }
+    questionsToUse = uniqueQuestions;
+
+    const preparedQuizQuestions = questionsToUse.map(q => {
         let optionsWithOptionsRendered: QuestionOption[];
         const currentOptions = q.options ? [...q.options] : [];
         if (q.type === QuestionType.TRUE_FALSE) {
@@ -185,15 +233,13 @@ const QuizView: React.FC = () => {
 
   }, [activeProfile, translate, currentLanguage]);
 
-
   const questionsSignature = useMemo(() => JSON.stringify(activeProfile?.questions || []), [activeProfile?.questions]);
   const settingsSignature = useMemo(() => JSON.stringify(activeProfile?.settings || {}), [activeProfile?.settings]);
 
   useEffect(() => {
     if (activeProfile && !showResultsView) {
-        setupNewQuizAttempt();
+        setupNewQuizAttempt(); // This was being called twice. The redundant call has been removed.
     } else if (!activeProfile && state.activeView === AppView.QUIZ) {
-        setCurrentQuizQuestions([]);
         setCurrentTestSettings(null);
         setShowResultsView(false);
         if (timerIdRef.current) clearInterval(timerIdRef.current);
@@ -252,11 +298,13 @@ const QuizView: React.FC = () => {
 
   const handleNextQuestion = () => {
     if (currentQuizQuestions.length === 0) return;
-    const currentQ = currentQuizQuestions[Number(currentQuestionIndex)];
-    if (currentQ.type === QuestionType.FILL_IN_THE_BLANK && (userAnswers[currentQuestionIndex] === null || String(userAnswers[currentQuestionIndex]).trim() === "")) {
+    const currentQ = currentQuizQuestions[currentQuestionIndex];
+    const currentAnswer = userAnswers[currentQuestionIndex];
+    
+    if (currentQ.type === QuestionType.FILL_IN_THE_BLANK && (currentAnswer === null || String(currentAnswer).trim() === "")) {
         dispatch({ type: 'OPEN_MESSAGE_MODAL', payload: { titleKey: 'msgAttention', textKey: 'msgPleaseEnterAnswer' }});
         return;
-    } else if ((currentQ.type === QuestionType.MULTIPLE_CHOICE || currentQ.type === QuestionType.TRUE_FALSE) && userAnswers[currentQuestionIndex] === null) {
+    } else if ((currentQ.type === QuestionType.MULTIPLE_CHOICE || currentQ.type === QuestionType.TRUE_FALSE) && currentAnswer === null) {
         dispatch({ type: 'OPEN_MESSAGE_MODAL', payload: { titleKey: 'msgAttention', textKey: 'msgPleaseSelectAnswer' }});
         return;
     }
@@ -267,7 +315,7 @@ const QuizView: React.FC = () => {
   };
 
   const handleTryAgain = () => {
-    setShowResultsView(false); 
+    setShowResultsView(false); // This will trigger the setup useEffect to start a new quiz
   };
 
   const handleBackToHub = () => {
@@ -278,7 +326,6 @@ const QuizView: React.FC = () => {
     setRemainingTime(null);
     dispatch({ type: 'SET_VIEW', payload: { view: AppView.TEST_PROFILE_HUB, activeTestProfileId: activeProfile.id } });
   };
-
 
   if (!activeProfile) {
     return (
@@ -323,13 +370,19 @@ const QuizView: React.FC = () => {
 
 
   if (showResultsView) {
+    const baseOptionClasses = "text-sm p-2.5 rounded-md border";
+    const correctOptionResultClasses = "bg-green-50 dark:bg-green-900/50 border-green-500 dark:border-green-600 text-green-700 dark:text-green-300";
+    const incorrectOptionSelectedClasses = "bg-red-50 dark:bg-red-900/50 border-red-500 dark:border-red-600 text-red-700 dark:text-red-300";
+    const neutralOptionClasses = "bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300";
+
+    // Recalculate score and percentage for display, ensuring consistency with what was submitted.
     let calculatedScore = 0;
     currentQuizQuestions.forEach((q, index) => {
         const ans = userAnswers[index];
         let isCorrect = false;
         if (q.type === QuestionType.MULTIPLE_CHOICE || q.type === QuestionType.TRUE_FALSE) {
             if (typeof ans === 'number' && q.optionsRendered && q.optionsRendered[ans]) {
-                isCorrect = q.optionsRendered[ans].text === q.correctOptionText;
+                isCorrect = q.optionsRendered[ans].text.trim() === q.correctOptionText.trim();
             }
         } else if (q.type === QuestionType.FILL_IN_THE_BLANK) {
             if (typeof ans === 'string') {
@@ -357,42 +410,39 @@ const QuizView: React.FC = () => {
             if (q.type === QuestionType.MULTIPLE_CHOICE || q.type === QuestionType.TRUE_FALSE) {
                 const chosenOptionObject = (typeof userAnswer === 'number' && q.optionsRendered) ? q.optionsRendered[userAnswer] : undefined;
                 userAnswerText = chosenOptionObject ? chosenOptionObject.text : translate('quizAnswerNotAnswered', {correctAnswer: ""}).split(".")[0].trim(); 
-                if (chosenOptionObject) isUserAnswerCorrect = chosenOptionObject.text === q.correctOptionText;
+                if (chosenOptionObject) {
+                    isUserAnswerCorrect = chosenOptionObject.text.trim() === q.correctOptionText.trim();
+                }
             } else if (q.type === QuestionType.FILL_IN_THE_BLANK) {
-                userAnswerText = userAnswer !== null && typeof userAnswer === 'string' ? userAnswer.trim() : translate('quizAnswerNotAnswered', {correctAnswer: ""}).split(".")[0].trim();
+                userAnswerText = userAnswer !== null && typeof userAnswer === 'string' && userAnswer.trim() !== '' ? userAnswer.trim() : translate('quizAnswerNotAnswered', {correctAnswer: ""}).split(".")[0].trim();
                 if (typeof userAnswer === 'string' && userAnswer !== null) {
                     isUserAnswerCorrect = userAnswer.trim().toLowerCase() === q.correctOptionText.trim().toLowerCase();
                 }
             }
             
-            const baseOptionClasses = "text-sm p-2.5 rounded-md border";
-            const correctOptionResultClasses = "bg-green-50 dark:bg-green-900/50 border-green-500 dark:border-green-600 text-green-700 dark:text-green-300";
-            const incorrectOptionSelectedClasses = "bg-red-50 dark:bg-red-900/50 border-red-500 dark:border-red-600 text-red-700 dark:text-red-300";
-            const neutralOptionClasses = "bg-slate-50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300";
-            
             return (
               <div key={q.id + '-result-' + index} className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg mb-3 bg-white dark:bg-slate-800 shadow-sm">
                 {q.questionImageURL && <img src={q.questionImageURL} alt={translate('altQuestionImage')} className="question-image my-2 max-h-40 mx-auto rounded-md border border-slate-200 dark:border-slate-700" onError={(e) => (e.currentTarget.style.display='none')} />}
-                <h3 className="font-semibold mb-1.5 text-slate-800 dark:text-slate-100">{Number(index) + 1}. {q.question}</h3>
+                <h3 className="font-semibold mb-1.5 text-slate-800 dark:text-slate-100">{index + 1}. {q.question}</h3>
                 
                 { (q.type === QuestionType.MULTIPLE_CHOICE || q.type === QuestionType.TRUE_FALSE) && q.optionsRendered && currentTestSettings &&
                     <ul className="list-none space-y-1.5 mt-2">
                     {q.optionsRendered.map((opt, optIdx) => {
-                        let liClasses = `${baseOptionClasses} `;
+                        let currentItemClasses = `${baseOptionClasses} `;
                         const isSelectedAnswerByUser = typeof userAnswer === 'number' && userAnswer === optIdx;
-                        const isTheCorrectDbAnswer = opt.text === q.correctOptionText;
+                        const isTheCorrectDbAnswer = opt.text.trim() === q.correctOptionText.trim();
 
                         if (isTheCorrectDbAnswer) {
-                            liClasses += correctOptionResultClasses;
-                             if(isSelectedAnswerByUser) liClasses += " ring-2 ring-offset-1 ring-green-500 dark:ring-green-400 dark:ring-offset-slate-800"; 
+                            currentItemClasses += correctOptionResultClasses;
+                             if(isSelectedAnswerByUser) currentItemClasses += " ring-2 ring-offset-1 ring-green-500 dark:ring-green-400 dark:ring-offset-slate-800"; 
                         } else if (isSelectedAnswerByUser && !isTheCorrectDbAnswer) {
-                            liClasses += incorrectOptionSelectedClasses;
+                            currentItemClasses += incorrectOptionSelectedClasses;
                         } else {
-                            liClasses += neutralOptionClasses;
+                            currentItemClasses += neutralOptionClasses;
                         }
                         
                         return (
-                            <li key={optIdx + '-li-res-' + q.id} className={`${liClasses}`}>
+                            <li key={optIdx + '-li-res-' + q.id} className={currentItemClasses.trim()}>
                                 {opt.imageURL && <img src={opt.imageURL} alt={translate('altOptionImage')} className="option-image max-h-20 mx-auto my-1 rounded border border-slate-200 dark:border-slate-600" onError={(e) => (e.currentTarget.style.display='none')} />}
                                 <span className="option-text">{getOptionPrefix(currentTestSettings.answerNumberingStyle, optIdx)}{opt.text}</span>
                             </li>
@@ -451,7 +501,7 @@ const QuizView: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-slate-900 dark:text-slate-100 break-all">
+      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-slate-900 dark:text-slate-100 break-words">
         {activeProfile.name}
       </h1>
       {currentTestSettings.enableTimer && remainingTime !== null && (
@@ -498,7 +548,7 @@ const QuizView: React.FC = () => {
                     value={index} 
                     checked={isSelected}
                     onChange={() => handleAnswerSelect(index)}
-                    className="hidden" 
+                    className="sr-only peer" 
                     aria-labelledby={`q${currentQuestionIndex}_option${index}_label`}
                   />
                   <label 
@@ -506,10 +556,8 @@ const QuizView: React.FC = () => {
                     htmlFor={`q${currentQuestionIndex}_option${index}`} 
                     className={`block p-3.5 border rounded-lg cursor-pointer transition-all 
                                 text-center text-slate-700 dark:text-slate-200 text-sm sm:text-base
-                                ${isSelected 
-                                  ? 'bg-indigo-100 dark:bg-indigo-800 border-indigo-500 dark:border-indigo-500 font-semibold ring-2 ring-indigo-500 dark:ring-indigo-400 ring-offset-1 dark:ring-offset-slate-900' 
-                                  : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500'
-                                }`}
+                                bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500
+                                peer-checked:bg-indigo-100 peer-checked:dark:bg-indigo-800 peer-checked:border-indigo-500 peer-checked:dark:border-indigo-500 peer-checked:font-semibold peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:dark:ring-indigo-400 peer-checked:ring-offset-1 peer-checked:dark:ring-offset-slate-900`}
                   >
                     {option.imageURL && 
                       <img 
@@ -535,6 +583,7 @@ const QuizView: React.FC = () => {
                 className="mt-1 block w-full p-3 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-base bg-white dark:bg-slate-700/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400"
                 placeholder={translate('formFillCorrectAnswerPlaceholder')}
                 aria-label={translate('formFillCorrectAnswerPlaceholder')}
+                autoFocus
               />
             </div>
           ) : null }
