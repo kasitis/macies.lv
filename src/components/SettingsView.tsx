@@ -247,7 +247,7 @@ const TestSettingsView: React.FC = () => {
                             handleSettingChange('numQuestions', 1);
                         }
                     }}
-                    className={`${inputBaseClasses} w-17 text-center disabled:bg-slate-100 dark:disabled:bg-slate-700/30 disabled:cursor-not-allowed`}
+                    className={`${inputBaseClasses} w-20 text-center disabled:bg-slate-100 dark:disabled:bg-slate-700/30 disabled:cursor-not-allowed`}
                 />
                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total available questions: {numQuestionsInProfile}</p>
             </div>
@@ -279,7 +279,7 @@ const TestSettingsView: React.FC = () => {
                                 value={currentSettings.topicQuestionCounts?.[topic] || (document.activeElement?.id === `topic-q-count-${topic.replace(/\s/g, '-')}` ? '' : '0')}
                                 onChange={(e) => handleTopicCountChange(topic, e.target.value)}
                                 onFocus={(e) => e.target.select()}
-                                className={`${inputBaseClasses} w-17 text-center py-1`}
+                                className={`${inputBaseClasses} w-20 text-center py-1`}
                                 aria-label={`Number of questions for topic ${topic}`}
                             />
                         </div>
@@ -332,7 +332,7 @@ const TestSettingsView: React.FC = () => {
                                 handleSettingChange('timerDurationMinutes', 1);
                             }
                         }}
-                        className={`${inputBaseClasses} w-17 text-center`}
+                        className={`${inputBaseClasses} w-20 text-center`}
                     />
                 </div>
             )}
@@ -376,11 +376,11 @@ const TestSettingsView: React.FC = () => {
                 className={`${currentSettings.randomizeAnswers ? toggleEnabledClasses : toggleDisabledClasses} ${toggleBaseClasses}`}
                 role="switch"
                 aria-checked={currentSettings.randomizeAnswers}
-            
+            >
                 <span className="sr-only">{translate('settingsRandomAnswers')}</span>
                 <span className={`${currentSettings.randomizeAnswers ? 'translate-x-5' : 'translate-x-0'} ${toggleKnobClasses}`}></span>
             </button>
-        </divH
+        </div>
       </div>
 
 
@@ -399,5 +399,6 @@ const TestSettingsView: React.FC = () => {
 
 
 export default TestSettingsView;
+
 
 
