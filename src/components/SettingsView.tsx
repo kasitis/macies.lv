@@ -376,7 +376,7 @@ const TestSettingsView: React.FC = () => {
                 className={`${currentSettings.randomizeAnswers ? toggleEnabledClasses : toggleDisabledClasses} ${toggleBaseClasses}`}
                 role="switch"
                 aria-checked={currentSettings.randomizeAnswers}
-            >
+            
                 <span className="sr-only">{translate('settingsRandomAnswers')}</span>
                 <span className={`${currentSettings.randomizeAnswers ? 'translate-x-5' : 'translate-x-0'} ${toggleKnobClasses}`}></span>
             </button>
