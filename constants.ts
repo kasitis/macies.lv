@@ -1,4 +1,4 @@
-import { Language, GeneralAppSettings, TestSpecificSettings, LanguagePack, AnswerNumberingStyle, MappedAppField } from './types.ts';
+import { Language, GeneralAppSettings, TestSpecificSettings, LanguagePack, AnswerNumberingStyle, MappedAppField } from './src/types.ts';
 
 export const LOCAL_STORAGE_TEST_PROFILES_KEY = 'maciesLvTestProfiles_v1_react';
 export const LOCAL_STORAGE_GENERAL_SETTINGS_KEY = 'maciesLvGeneralSettings_v1_react';
