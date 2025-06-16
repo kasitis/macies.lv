@@ -1,6 +1,4 @@
-
-
-import { Language, GeneralAppSettings, TestSpecificSettings, LanguagePack, AnswerNumberingStyle, MappedAppField } from './src/types.ts';
+import { Language, GeneralAppSettings, TestSpecificSettings, LanguagePack, AnswerNumberingStyle, MappedAppField } from './types.ts';
 
 export const LOCAL_STORAGE_TEST_PROFILES_KEY = 'maciesLvTestProfiles_v1_react';
 export const LOCAL_STORAGE_GENERAL_SETTINGS_KEY = 'maciesLvGeneralSettings_v1_react';
@@ -26,12 +24,14 @@ export const DEFAULT_GENERAL_APP_SETTINGS: GeneralAppSettings = {
 
 export const DEFAULT_TEST_SPECIFIC_SETTINGS: TestSpecificSettings = {
   numQuestions: 10,
-  useAllQuestions: true,
+  useAllQuestions: true, 
   randomizeQuestions: true,
   randomizeAnswers: true,
   answerNumberingStyle: AnswerNumberingStyle.NUMBERS,
   enableTimer: false,
   timerDurationMinutes: 30,
+  selectByTopic: false,  
+  topicQuestionCounts: {}, 
 };
 
 export const APP_FIELDS_FOR_MAPPING: MappedAppField[] = [
@@ -61,7 +61,6 @@ export const translations: LanguagePack = {
     navImportExport: "Importēt/Eksportēt",
     navImportXlsxCsv: "Importēt (XLSX/CSV)",
 
-    // Home page
     homeWelcome: "Laipni lūgti Mācies.lv!",
     homeModulesTitle: "Pieejamie Moduļi",
     homeInteractiveTestsTitle: "Interaktīvie Testi",
@@ -72,9 +71,10 @@ export const translations: LanguagePack = {
     homeGamesDesc: "Izklaidējies un mācies ar interaktīvām spēlēm.",
     homeArticlesTitle: "Izglītojoši Raksti",
     homeArticlesDesc: "Lasiet rakstus par dažādām tēmām, lai paplašinātu savas zināšanas.",
+    homeChatbotTitle: "AI Palīgs",
+    homeChatbotDesc: "Tērzējiet ar mākslīgo intelektu, lai iegūtu atbildes vai vienkārši parunātos.",
     homeComingSoon: "Drīzumā!",
     
-    // My Tests View
     myTestsTitle: "Mani Sagatavotie Testi",
     myTestsCreateNew: "Izveidot Jaunu Testu",
     myTestsNoProfiles: "Vēl nav izveidots neviens tests. Sāciet, izveidojot jaunu!",
@@ -87,7 +87,6 @@ export const translations: LanguagePack = {
     myTestsEditDetails: "Rediģēt Detaļas",
     myTestsDelete: "Dzēst Testu",
 
-    // Test Profile Hub View
     testProfileHubTitle: "Testa Centrs: {name}",
     testHubStartTest: "Sākt Testu",
     testHubManageBank: "Pārvaldīt Jautājumus",
@@ -97,7 +96,6 @@ export const translations: LanguagePack = {
     testHubBackToAllTests: "Atpakaļ pie Visiem Testiem",
     navBackToHub: "Atpakaļ uz Centru",
 
-    // Quiz View
     quizNoQuestionsAvailable: "Testam '{name}' nav pieejami jautājumi.",
     quizNoQuestionsAdvice: "Lūdzu, pievienojiet dažus jautājumus jautājumu bankā vai pārbaudiet testa iestatījumus.",
     quizQuestionOf: "{current} no {total}",
@@ -116,7 +114,6 @@ export const translations: LanguagePack = {
     quizTimeUpTitle: "Laiks Beidzies!",
     quizTimeUpMessage: "Jūsu tests tika automātiski iesniegts, jo laiks ir beidzies.",
 
-    // Question Bank View
     qBankTitle: "Jautājumu Banka: {name}",
     qBankSearchByText: "Meklēt pēc teksta",
     qBankSearchPlaceholder: "Ievadiet atslēgvārdu...",
@@ -140,7 +137,6 @@ export const translations: LanguagePack = {
     qBankMappingTypeTip: "'multiple-choice', 'true-false', vai 'fill-in-the-blank'. Ja nav norādīts, būs 'multiple-choice'.",
     qBankMappingCorrectAnswerTip: "Piem., 'A', 'True', vai 'Rīga'. True/False var būt arī 'paties'/'aplams'.",
 
-    // Create/Edit Question View
     formTitleAdd: "Pievienot Jaunu Jautājumu",
     formTitleEdit: "Rediģēt Jautājumu",
     formQuestionTypeLabel: "Jautājuma tips",
@@ -164,16 +160,13 @@ export const translations: LanguagePack = {
     optionEmptyOrImage: "(tukšs vai tikai attēls)",
     formImageWarning: "Attēli tiek saglabāti pārlūkprogrammā. Lielāki attēli (virs {maxSize}KB) var palēnināt darbību vai netikt saglabāti.",
 
-    // Question Types
     qTypeMultipleChoice: "Vairākatbilžu",
     qTypeTrueFalse: "Patiess/Aplams",
     qTypeFillInBlank: "Aizpildīt Tukšumu",
 
-    // Options (True/False)
     optionTrue: "Patiess",
     optionFalse: "Aplams",
 
-    // Stats View
     statsTitle: "Statistika: {name}",
     statsTotalTests: "Kopā Testi",
     statsAverageScore: "Vidējais Rezultāts",
@@ -189,7 +182,6 @@ export const translations: LanguagePack = {
     statsScore: "Rezultāts:",
     statsTimeTaken: "Patērētais laiks:",
 
-    // Settings View (Test Specific)
     testSettingsTitle: "Konfigurācija: {name}",
     settingsAnswerNumbering: "Atbilžu numerācijas stils:",
     settingsNumQuestions: "Jautājumu skaits testā:",
@@ -199,8 +191,14 @@ export const translations: LanguagePack = {
     settingsSaveBtn: "Saglabāt Iestatījumus",
     settingsEnableTimer: "Iespējot taimeri",
     settingsTimerDurationMinutes: "Taimera ilgums (minūtēs):",
+    settingsSelectionModeTitle: "Jautājumu Atlases Režīms",
+    settingsSelectionModeAll: "Izmantot visus jautājumus bankā",
+    settingsSelectionModeTotalNum: "Norādīt kopējo jautājumu skaitu",
+    settingsSelectionModeByTopic: "Norādīt jautājumu skaitu pa tēmām",
+    settingsPerTopicTitle: "Jautājumi pa Tēmām",
+    settingsTopicQuestionsLabel: "'{topicName}' ({availableCount} pieej.):",
+    settingsTotalTopicQuestions: "Kopā atlasīts pa tēmām: {count}",
 
-    // Settings View (General)
     generalSettingsTitle: "Vispārīgie Iestatījumi",
     settingsLanguageTitle: "Valoda",
     settingsDarkMode: "Tumšais režīms",
@@ -208,7 +206,6 @@ export const translations: LanguagePack = {
     settingsClearDataBtn: "Dzēst Visus Datus",
     settingsClearDataWarning: "UZMANĪBU: Šī darbība neatgriezeniski dzēsīs VISUS jūsu saglabātos testus, jautājumus, vēsturi un iestatījumus. Vai esat pārliecināts?",
     
-    // Modals & Messages
     modalOK: "Labi",
     modalCancel: "Atcelt",
     modalConfirm: "Apstiprināt",
@@ -294,6 +291,8 @@ export const translations: LanguagePack = {
     msgPleaseSelectAnswer: "Lūdzu, izvēlieties atbildi.",
     msgPleaseAnswerLast: "Lūdzu, atbildiet uz pēdējo jautājumu pirms iesniegšanas.",
     timerMustBePositive: "Ja taimeris ir ieslēgts, tā ilgumam jābūt lielākam par 0.",
+    msgErrorTopicCountExceedsAvailable: "Nevar atlasīt vairāk par {available} jautājumiem tēmai '{topicName}'. Jūs mēģinājāt atlasīt {selected}.",
+    msgErrorNoQuestionsSelectedByTopic: "Lūdzu, atlasiet vismaz vienu jautājumu, ja izmantojat režīmu 'Norādīt pa tēmām'.",
     timerNotEnabled: "Nav aktīvs",
     timeMinutesSeconds: "{minutes} min {seconds} sek",
 
@@ -301,11 +300,9 @@ export const translations: LanguagePack = {
     dataSource: "Datu avots",
     dataSourceBrowserMemory: "Pārlūka atmiņa",
 
-    // Games
     gamesHubTitle: "Spēļu Centrs",
     navBackToGamesHub: "Atpakaļ uz Spēlēm",
 
-    // Wordle LV Game
     wordleLvGameTitle: "Wordle (LV)",
     wordleLvGameDesc: "Uzmini 5 burtu vārdu latviešu valodā. Tev ir 6 mēģinājumi!",
     wordleAttemptsLeft: "Atlikušie mēģinājumi: {count}",
@@ -320,7 +317,6 @@ export const translations: LanguagePack = {
     wordleHint: "Pačukstēt",
     wordleHintUsedOrUnavailable: "Mājiņa jau izmantota vai nav pieejama.",
 
-    // Number Cruncher Game
     numberCruncherGameTitle: "Ātrais Rēķins",
     numberCruncherGameDesc: "Pārbaudi savas matemātikas prasmes, risinot uzdevumus laikā!",
     ncSelectDifficulty: "Izvēlies Grūtības Pakāpi:",
@@ -330,7 +326,7 @@ export const translations: LanguagePack = {
     ncSelectMode: "Izvēlies Režīmu:",
     ncModeAdd: "Tikai Saskaitīšana",
     ncModeSubtract: "Tikai Atņemšana",
-    ncModeMultiply: "Tikai Reizināšana",
+    ncModeMultiply: "Tikai Reizinīšana",
     ncModeDivide: "Tikai Dalīšana",
     ncModeMixed: "Jaukts (Visi Veidi)",
     ncStartGame: "Sākt Spēli!",
@@ -343,7 +339,6 @@ export const translations: LanguagePack = {
     ncGameOver: "Spēle Beigusies!",
     ncFinalScore: "Tavs gala rezultāts: {score} punkti",
     
-    // Flashcards
     flashcardDecksListTitle: "Zibatmiņu Kartīšu Komplekti",
     flashcardCreateNewDeck: "Izveidot Jaunu Komplektu",
     flashcardNoDecks: "Vēl nav izveidots neviens kartīšu komplekts.",
@@ -393,7 +388,6 @@ export const translations: LanguagePack = {
     flashcardStudyEnd: "Beigt Mācīšanos",
     flashcardShuffleCards: "Jaukt Kartītes",
 
-    // Articles
     navArticles: "Raksti",
     articlesListTitle: "Rakstu Saraksts",
     articleFilterByCategory: "Filtrēt pēc Kategorijas",
@@ -410,7 +404,14 @@ export const translations: LanguagePack = {
     articleNoContentPlaceholder: "Raksta saturs nav pieejams.",
     articleNoExcerptFallback: "Nav pieejams īss apraksts.",
     
-    // General
+    chatbotViewTitle: "AI Palīgs",
+    chatbotPlaceholder: "Rakstiet ziņu šeit...",
+    chatbotSend: "Sūtīt",
+    chatbotClearChat: "Notīrīt Tērzēšanu",
+    chatbotIsTyping: "AI raksta...",
+    chatbotErrorApi: "Neizdevās sazināties ar AI. Lūdzu, mēģiniet vēlāk.",
+    chatbotErrorApiKeyMissing: "AI funkcionalitāte nav pieejama. API atslēga nav konfigurēta.",
+
     msgError: "Kļūda",
     totalQuestions: "Kopā jautājumu:",
     altQuestionImage: "Jautājuma attēls",
@@ -439,7 +440,6 @@ export const translations: LanguagePack = {
     navImportExport: "Import/Export",
     navImportXlsxCsv: "Import (XLSX/CSV)",
 
-    // Home page
     homeWelcome: "Welcome to Learn.lv!",
     homeModulesTitle: "Available Modules",
     homeInteractiveTestsTitle: "Interactive Tests",
@@ -450,9 +450,10 @@ export const translations: LanguagePack = {
     homeGamesDesc: "Have fun and learn with interactive games.",
     homeArticlesTitle: "Educational Articles",
     homeArticlesDesc: "Read articles on various topics to expand your knowledge.",
+    homeChatbotTitle: "AI Assistant",
+    homeChatbotDesc: "Chat with an AI to get answers or just talk.",
     homeComingSoon: "Coming Soon!",
 
-    // My Tests View
     myTestsTitle: "My Prepared Tests",
     myTestsCreateNew: "Create New Test",
     myTestsNoProfiles: "No tests created yet. Start by creating a new one!",
@@ -465,7 +466,6 @@ export const translations: LanguagePack = {
     myTestsEditDetails: "Edit Details",
     myTestsDelete: "Delete Test",
 
-    // Test Profile Hub View
     testProfileHubTitle: "Test Hub: {name}",
     testHubStartTest: "Start Test",
     testHubManageBank: "Manage Questions",
@@ -475,7 +475,6 @@ export const translations: LanguagePack = {
     testHubBackToAllTests: "Back to All Tests",
     navBackToHub: "Back to Hub",
 
-    // Quiz View
     quizNoQuestionsAvailable: "No questions available for test '{name}'.",
     quizNoQuestionsAdvice: "Please add some questions in the question bank or check test settings.",
     quizQuestionOf: "{current} of {total}",
@@ -494,7 +493,6 @@ export const translations: LanguagePack = {
     quizTimeUpTitle: "Time's Up!",
     quizTimeUpMessage: "Your test was submitted automatically because time ran out.",
 
-    // Question Bank View
     qBankTitle: "Question Bank: {name}",
     qBankSearchByText: "Search by text",
     qBankSearchPlaceholder: "Enter keyword...",
@@ -518,8 +516,6 @@ export const translations: LanguagePack = {
     qBankMappingTypeTip: "'multiple-choice', 'true-false', or 'fill-in-the-blank'. Defaults to 'multiple-choice'.",
     qBankMappingCorrectAnswerTip: "E.g., 'A', 'True', or 'Paris'. True/False can also be 'true'/'false'.",
 
-
-    // Create/Edit Question View
     formTitleAdd: "Add New Question",
     formTitleEdit: "Edit Question",
     formQuestionTypeLabel: "Question type",
@@ -543,16 +539,13 @@ export const translations: LanguagePack = {
     optionEmptyOrImage: "(empty or image only)",
     formImageWarning: "Images are stored in the browser. Large images (over {maxSize}KB) may slow down performance or not save.",
 
-    // Question Types
     qTypeMultipleChoice: "Multiple Choice",
     qTypeTrueFalse: "True/False",
     qTypeFillInBlank: "Fill in the Blank",
 
-    // Options (True/False)
     optionTrue: "True",
     optionFalse: "False",
 
-    // Stats View
     statsTitle: "Statistics: {name}",
     statsTotalTests: "Total Tests",
     statsAverageScore: "Average Score",
@@ -568,7 +561,6 @@ export const translations: LanguagePack = {
     statsScore: "Score:",
     statsTimeTaken: "Time taken:",
 
-    // Settings View (Test Specific)
     testSettingsTitle: "Configuration: {name}",
     settingsAnswerNumbering: "Answer numbering style:",
     settingsNumQuestions: "Number of questions in test:",
@@ -578,8 +570,14 @@ export const translations: LanguagePack = {
     settingsSaveBtn: "Save Settings",
     settingsEnableTimer: "Enable timer",
     settingsTimerDurationMinutes: "Timer duration (minutes):",
+    settingsSelectionModeTitle: "Question Selection Mode",
+    settingsSelectionModeAll: "Use all questions in bank",
+    settingsSelectionModeTotalNum: "Specify total number of questions",
+    settingsSelectionModeByTopic: "Specify number of questions per topic",
+    settingsPerTopicTitle: "Questions per Topic",
+    settingsTopicQuestionsLabel: "'{topicName}' ({availableCount} avail.):",
+    settingsTotalTopicQuestions: "Total selected by topic: {count}",
 
-    // Settings View (General)
     generalSettingsTitle: "General Settings",
     settingsLanguageTitle: "Language",
     settingsDarkMode: "Dark mode",
@@ -587,7 +585,6 @@ export const translations: LanguagePack = {
     settingsClearDataBtn: "Clear All Data",
     settingsClearDataWarning: "WARNING: This action will permanently delete ALL your saved tests, questions, history, and settings. Are you sure?",
 
-    // Modals & Messages
     modalOK: "OK",
     modalCancel: "Cancel",
     modalConfirm: "Confirm",
@@ -600,7 +597,6 @@ export const translations: LanguagePack = {
     mapDoNotImport: "-- Do Not Import --",
     mapPreviewData: "First {count} rows from your file:",
     btnStartImport: "Start Import",
-
 
     msgValidationError: "Validation Error",
     msgErrorQuestionTextMissing: "Question text is required.",
@@ -673,17 +669,17 @@ export const translations: LanguagePack = {
     msgPleaseSelectAnswer: "Please select an answer.",
     msgPleaseAnswerLast: "Please answer the last question before submitting.",
     timerMustBePositive: "If timer is enabled, its duration must be greater than 0.",
+    msgErrorTopicCountExceedsAvailable: "Cannot select more than {available} questions for topic '{topicName}'. You tried to select {selected}.",
+    msgErrorNoQuestionsSelectedByTopic: "Please select at least one question if using 'Specify by topic' mode.",
     timerNotEnabled: "Not active",
     timeMinutesSeconds: "{minutes} min {seconds} sec",
 
     dataSource: "Data source",
     dataSourceBrowserMemory: "Browser memory",
 
-    // Games
     gamesHubTitle: "Games Hub",
     navBackToGamesHub: "Back to Games",
 
-    // Wordle LV Game
     wordleLvGameTitle: "Wordle (LV)",
     wordleLvGameDesc: "Guess the 5-letter Latvian word. You have 6 attempts!",
     wordleAttemptsLeft: "Attempts left: {count}",
@@ -698,7 +694,6 @@ export const translations: LanguagePack = {
     wordleHint: "Hint",
     wordleHintUsedOrUnavailable: "Hint already used or unavailable.",
 
-    // Number Cruncher Game
     numberCruncherGameTitle: "Number Cruncher",
     numberCruncherGameDesc: "Test your math skills by solving problems against the clock!",
     ncSelectDifficulty: "Select Difficulty:",
@@ -720,8 +715,7 @@ export const translations: LanguagePack = {
     ncIncorrect: "Incorrect.",
     ncGameOver: "Game Over!",
     ncFinalScore: "Your final score: {score} points",
-
-    // Flashcards
+    
     flashcardDecksListTitle: "Flashcard Decks",
     flashcardCreateNewDeck: "Create New Deck",
     flashcardNoDecks: "No flashcard decks created yet.",
@@ -771,7 +765,6 @@ export const translations: LanguagePack = {
     flashcardStudyEnd: "End Study",
     flashcardShuffleCards: "Shuffle Cards",
 
-    // Articles
     navArticles: "Articles",
     articlesListTitle: "Articles List",
     articleFilterByCategory: "Filter by Category",
@@ -787,8 +780,15 @@ export const translations: LanguagePack = {
     navBackToArticles: "Back to Articles",
     articleNoContentPlaceholder: "Article content is not available.",
     articleNoExcerptFallback: "No excerpt available.",
-    
-    // General
+        
+    chatbotViewTitle: "AI Assistant",
+    chatbotPlaceholder: "Type your message here...",
+    chatbotSend: "Send",
+    chatbotClearChat: "Clear Chat",
+    chatbotIsTyping: "AI is typing...",
+    chatbotErrorApi: "Failed to connect to AI. Please try again later.",
+    chatbotErrorApiKeyMissing: "AI functionality unavailable. API key not configured.",
+
     msgError: "Error",
     totalQuestions: "Total questions:",
     altQuestionImage: "Question image",
@@ -827,6 +827,8 @@ export const translations: LanguagePack = {
     homeGamesDesc: "Розважайся та навчайся з інтерактивними іграми.",
     homeArticlesTitle: "Освітні Статті",
     homeArticlesDesc: "Читайте статті на різноманітні теми, щоб розширити свої знання.",
+    homeChatbotTitle: "AI Помічник",
+    homeChatbotDesc: "Спілкуйтеся зі штучним інтелектом, щоб отримати відповіді або просто поговорити.",
     homeComingSoon: "Незабаром!",
 
     myTestsTitle: "Мої Підготовлені Тести",
@@ -851,23 +853,23 @@ export const translations: LanguagePack = {
     navBackToHub: "Назад до Центру",
     
     quizNoQuestionsAvailable: "Для тесту '{name}' немає доступних запитань.",
-    quizNoQuestionsAdvice: "Будь ласка, додайте запитання до банку запитань або перевірте налаштування тесту.",
+    quizNoQuestionsAdvice: "Budiet lūdzu, додайте запитання до банку запитань vai pārbaudiet налаштування тесту.",
     quizQuestionOf: "{current} з {total}",
     quizResultsTitle: "Результати",
     quizYourScore: "Ваш результат: {score} з {totalPossible} ({percentage}%)",
     quizCorrectAnswerWas: "Правильна відповідь: {correctAnswer}",
     quizYourAnswerWas: "Ваша відповідь: {userAnswer}. Правильна: {correctAnswer}",
-    quizAnswerNotAnswered: "Ви не відповіли. Правильна відповідь: {correctAnswer}",
-    quizPreviousBtn: "Попереднє",
-    quizNextBtn: "Наступне",
-    quizSubmitBtn: "Надіслати",
-    quizTryAgainBtn: "Спробувати Ще",
-    quizGoToAddFromEmpty: "Додати Запитання",
-    quizGoToSettingsFromEmpty: "Налаштування Тесту",
-    quizTimeRemaining: "Залишилося часу: {time}",
-    quizTimeUpTitle: "Час Вийшов!",
-    quizTimeUpMessage: "Ваш тест було автоматично надіслано, оскільки час закінчився.",
-    
+    quizAnswerNotAnswered: "Ви ne atbildējāt. Pareizā atbilde: {correctAnswer}",
+    quizPreviousBtn: "Iepriekšējais",
+    quizNextBtn: "Nākamais",
+    quizSubmitBtn: "Iesniegt",
+    quizTryAgainBtn: "Mēģināt Vēlreiz",
+    quizGoToAddFromEmpty: "Pievienot Jautājumus",
+    quizGoToSettingsFromEmpty: "Testa Iestatījumi",
+    quizTimeRemaining: "Atlicis laiks: {time}",
+    quizTimeUpTitle: "Laiks Beidzies!",
+    quizTimeUpMessage: "Jūsu tests tika automātiski iesniegts, jo laiks ir beidzies.",
+
     qBankTitle: "Банк Запитань: {name}",
     qBankSearchByText: "Пошук за текстом",
     qBankSearchPlaceholder: "Введіть ключове слово...",
@@ -895,9 +897,9 @@ export const translations: LanguagePack = {
     formTitleEdit: "Редагувати Запитання",
     formQuestionTypeLabel: "Тип запитання",
     formQuestionTextLabel: "Текст запитання",
-    formTopicLabel: "Тема (необов'язково)",
+    formTopicLabel: "Тема (neobligāta)",
     formTopicPlaceholder: "Напр., Історія, Математика",
-    formQuestionImageLabel: "Зображення до запитання (необов'язково, до {maxSize}KB)",
+    formQuestionImageLabel: "Зображення до запитання (neobligāta, līdz {maxSize}KB)",
     formOptionsLabel: "Варіанти відповіді",
     optionVariant: "Варіант",
     formAddOptionBtn: "Додати варіант",
@@ -910,9 +912,9 @@ export const translations: LanguagePack = {
     formStatusSaving: "Збереження...",
     formStatusSaved: "Запитання збережено!",
     formStatusChangesSaved: "Зміни збережено!",
-    optionImageLabel: "Зображення варіанту (необов'язково)",
+    optionImageLabel: "Зображення варіанту (neobligāta)",
     optionEmptyOrImage: "(порожньо або тільки зображення)",
-    formImageWarning: "Зображення зберігаються у браузері. Великі зображення (понад {maxSize}KB) можуть сповільнити роботу або не зберегтися.",
+    formImageWarning: "Зображenia zberig pārlūkprogrammā. Великі зображення (понад {maxSize}KB) можуть сповільнīt darbību vai ne tikt saglabāti.",
 
     qTypeMultipleChoice: "Множинний Вибір",
     qTypeTrueFalse: "Так/Ні",
@@ -945,6 +947,13 @@ export const translations: LanguagePack = {
     settingsSaveBtn: "Зберегти Налаштування",
     settingsEnableTimer: "Увімкнути таймер",
     settingsTimerDurationMinutes: "Тривалість таймера (хвилини):",
+    settingsSelectionModeTitle: "Режим Вибору Запитань",
+    settingsSelectionModeAll: "Використовувати всі запитання з банку",
+    settingsSelectionModeTotalNum: "Вказати загальну кількість запитань",
+    settingsSelectionModeByTopic: "Вказати кількість запитань за темами",
+    settingsPerTopicTitle: "Запитання за Темами",
+    settingsTopicQuestionsLabel: "'{topicName}' ({availableCount} дост.):",
+    settingsTotalTopicQuestions: "Всього обрано за темами: {count}",
 
     generalSettingsTitle: "Загальні Налаштування",
     settingsLanguageTitle: "Мова",
@@ -963,7 +972,7 @@ export const translations: LanguagePack = {
     mapDetectedHeaders: "Виявлені Заголовки у Файлі:",
     mapToFieldLabel: "Зіставити з Полем Програми '{fieldName}'",
     mapDoNotImport: "-- Не імпортувати --",
-    mapPreviewData: "Перші {count} рядків з вашого файлу:",
+    mapPreviewData: "Першie {count} рядків з вашого файлу:",
     btnStartImport: "Почати Імпорт",
 
     msgValidationError: "Помилка Валідації",
@@ -975,198 +984,203 @@ export const translations: LanguagePack = {
     msgErrorInvalidCorrectAnswerTf: "Правильна відповідь для Так/Ні має бути '{trueText}' або '{falseText}'. Ви вказали: '{providedAnswer}'.",
     msgErrorCorrectAnswerMissingMcq: "Будь ласка, надайте правильну відповідь для запитання з множинним вибором.",
     msgErrorCorrectAnswerMissingFib: "Будь ласка, надайте правильну відповідь для запитання на заповнення пропуску.",
-    msgOptionIsImageOnlyCorrect: "Варіант, що містить лише зображення, не може бути правильною відповіддю без супровідного тексту.",
+    msgOptionIsImageOnlyCorrect: "Варіант, що містить лише зображення, не може бути правильною відповіддī bez pavadzījošā teksta.",
     
     msgFileTooLarge: "Файл Занадто Великий",
     msgFileTooLargeDetail: "Максимально дозволений розмір файлу - {maxSize}KB. Ваш файл: {fileSize}KB.",
-    msgMaxOptionsReached: "Досягнуто Максимальної Кількість Варіантів",
-    msgMaxOptionsDetail: "Ви можете додати щонайбільше {max} варіантів відповіді.",
+    msgMaxOptionsReached: "Досягнуто Maksimālās Kārtas",
+    msgMaxOptionsDetail: "Jūs varat pievienot ne vairāk kā {max} atbilžu variantus.",
     
-    msgImportConfirm: "Підтвердити Імпорт",
-    msgImportConfirmDetail: "Ви дійсно бажаєте імпортувати запитання з '{filename}' для тесту '{testName}'? Існуючі запитання буде замінено.",
-    msgImportedSuccess: "Успішно Імпортовано",
-    msgImportedSuccessDetail: "Запитання для тесту '{testName}' успішно імпортовано.",
-    msgXlsxImportedSuccess: "{count} запитань з '{filename}' успішно імпортовано для тесту '{testName}'.",
-    msgImportError: "Помилка Імпорту",
-    msgImportErrorInvalidFormat: "Недійсний формат або структура файлу.",
-    msgImportErrorReadFile: "Не вдалося прочитати файл. Помилка: {errorMessage}",
-    msgImportErrorReadingFile: "Не вдалося прочитати файл.",
-    msgXlsxImportErrorNoSheet: "У файлі XLSX не знайдено жодного аркуша.",
-    msgXlsxImportErrorNoHeaders: "У вибраному аркуші не знайдено заголовків стовпців.",
-    msgXlsxImportErrorMapping: "Поле тексту запитання ('Текст запитання') має бути зіставлене для імпорту.",
-    msgXlsxImportNoValidQuestionsFound: "У файлі не знайдено жодного дійсного запитання, або всі містили помилки.",
-    msgXlsxImportCompletedWithRowErrorsTitle: "Імпорт Завершено з Помилками в Рядках",
-    msgXlsxImportCompletedWithRowErrorsDetail: "Деякі рядки не вдалося імпортувати. Всього {errorCount} помилкових рядків. Показано перші {shownErrorCount}:\n{errorListString}",
-    msgXlsxImportRowErrorPrefix: "Рядок {rowNum}",
-    msgErrorUnexpectedRowProcessing: "Неочікувана помилка обробки рядка: {errorMessage}",
-    msgErrorMoreErrorsText: "додаткових помилок...",
+    msgImportConfirm: "Pārbaudīt Importu",
+    msgImportConfirmDetail: "Vai tiešām vēlaties importēt jautājumus no '{filename}' testam '{testName}'? Esošie jautājumi tiks aizstāti.",
+    msgImportedSuccess: "Veiksmīgi Importēts",
+    msgImportedSuccessDetail: "Jautājumi testam '{testName}' ir veiksmīgi importēti.",
+    msgXlsxImportedSuccess: "{count} jautājumi no '{filename}' veiksmīgi importēti testam '{testName}'.",
+    msgImportError: "Importēšanas Kļūda",
+    msgImportErrorInvalidFormat: "Nederīgs faila formāts vai struktūra.",
+    msgImportErrorReadFile: "Neizdevās nolasīt failu. Kļūda: {errorMessage}",
+    msgImportErrorReadingFile: "Neizdevās nolasīt failu.",
+    msgXlsxImportErrorNoSheet: "XLSX failā netika atrasta neviena lapa.",
+    msgXlsxImportErrorNoHeaders: "Izvēlētajā lapā netika atrasti stabiņu nosaukumi (headeri).",
+    msgXlsxImportErrorMapping: "Jautājuma teksts ('Jautājuma teksts') ir obligāti jānorāda kartēšanā.",
+    msgXlsxImportNoValidQuestionsFound: "Failā netika atrasts neviens derīgs jautājums vai arī visi saturēja kļūdas.",
+    msgXlsxImportCompletedWithRowErrorsTitle: "Imports Pabeigts ar Kļūdām Rindās",
+    msgXlsxImportCompletedWithRowErrorsDetail: "Dažas rindas nevarēja importēt. Kopā {errorCount} kļūdainas rindas. Parādītas pirmās {shownErrorCount}:\n{errorListString}",
+    msgXlsxImportRowErrorPrefix: "Rinda {rowNum}",
+    msgErrorUnexpectedRowProcessing: "Neparedzēta kļūda rindas apstrādē: {errorMessage}",
+    msgErrorMoreErrorsText: "papildu kļūdas...",
 
-    msgExported: "Успішно Експортовано",
-    msgExportedDetail: "Запитання з тесту '{testName}' збережено у файл '{filename}'.",
-    msgNoDataToExport: "Немає Даних для Експорту",
-    msgNoDataToExportDetail: "Тест '{testName}' не містить запитань для експорту.",
-    
-    msgSettingsSaved: "Налаштування Збережено",
-    msgSettingsSavedDetail: "Зміни успішно збережено.",
-    msgSavingErrorDetail: "Помилка збереження. Перевірте дані та спробуйте ще раз.",
-    
-    msgDataCleared: "Всі Дані Видалено",
-    msgDataClearedDetail: "Всі ваші дані успішно видалено зі сховища браузера.",
-    msgClearAllDataConfirm: "Підтвердити Видалення Всіх Даних?",
-    
-    msgDeleteConfirm: "Підтвердити Видалення",
-    msgDeleteConfirmDetail: "Ви дійсно бажаєте видалити '{questionText}'?",
-    msgBulkDeleteConfirm: "Підтвердити Масове Видалення",
-    msgBulkDeleteConfirmDetail: "Ви дійсно бажаєте видалити {count} вибраних запитань?",
-    msgDeletedSuccess: "Успішно Видалено",
-    msgDeletedSuccessDetail: "Вибраний елемент успішно видалено.",
-    msgNoItemsSelected: "Будь ласка, виберіть хоча б один елемент для видалення.",
-    
-    confirmDeleteTestProfileTitle: "Підтвердити Видалення Тесту",
-    confirmDeleteTestProfileText: "Ви дійсно бажаєте видалити тест '{name}' та всі його запитання?",
-    testProfileNameRequired: "Назва тесту є обов'язковою.",
-    testProfileDeleted: "Тест успішно видалено.",
-    saveTestProfile: "Зберегти Тест",
-    createTestProfileTitle: "Створити Новий Тест",
-    editTestProfileTitle: "Редагувати Деталі Тесту",
-    
-    msgQuestionNotFoundEdit: "Запитання для редагування не знайдено. Можливо, його було видалено.",
-    
-    msgAttention: "Увага!",
-    msgPleaseEnterAnswer: "Будь ласка, введіть відповідь.",
-    msgPleaseSelectAnswer: "Будь ласка, виберіть відповідь.",
-    msgPleaseAnswerLast: "Будь ласка, дайте відповідь на останнє запитання перед надсиланням.",
-    timerMustBePositive: "Якщо таймер увімкнено, його тривалість має бути більшою за 0.",
-    timerNotEnabled: "Не активний",
-    timeMinutesSeconds: "{minutes} хв {seconds} сек",
 
-    dataSource: "Джерело даних",
-    dataSourceBrowserMemory: "Пам'ять браузера",
+    msgExported: "Veiksmīgi Eksportēts",
+    msgExportedDetail: "Jautājumi no testa '{testName}' saglabāti failā '{filename}'.",
+    msgNoDataToExport: "Nav Datu Eksportam",
+    msgNoDataToExportDetail: "Testā '{testName}' nav jautājumu, ko eksportēt.",
+    
+    msgSettingsSaved: "Iestatījumi Saglabāti",
+    msgSettingsSavedDetail: "Izmaiņas ir veiksmīgi saglabātas.",
+    msgSavingErrorDetail: "Kļūda saglabājot. Pārbaudiet datus un mēģiniet vēlreiz.",
+    
+    msgDataCleared: "Visi Dati Dzēsti",
+    msgDataClearedDetail: "Visi jūsu dati ir veiksmīgi dzēsti no pārlūkprogrammas atmiņas.",
+    msgClearAllDataConfirm: "Apstiprināt Visu Datu Dzēšanu?",
+    
+    msgDeleteConfirm: "Apstiprināt Dzēšanu",
+    msgDeleteConfirmDetail: "Vai tiešām vēlaties dzēst '{questionText}'?",
+    msgBulkDeleteConfirm: "Apstiprināt Vairāku Dzēšanu",
+    msgBulkDeleteConfirmDetail: "Vai tiešām vēlaties dzēst {count} atlasītos jautājumus?",
+    msgDeletedSuccess: "Veiksmīgi Dzēsts",
+    msgDeletedSuccessDetail: "Atlasītais elements ir veiksmīgi dzēsts.",
+    msgNoItemsSelected: "Lūdzu, atlasiet vismaz vienu elementu, ko dzēst.",
 
-    // Games
-    gamesHubTitle: "Ігровий Центр",
-    navBackToGamesHub: "Назад до Ігор",
+    confirmDeleteTestProfileTitle: "Apstiprināt Testa Dzēšanu",
+    confirmDeleteTestProfileText: "Vai tiešām vēlaties dzēst testu '{name}' un visus tā jautājumus?",
+    testProfileNameRequired: "Testa nosaukums ir obligāts.",
+    testProfileDeleted: "Tests veiksmīgi dzēsts.",
+    saveTestProfile: "Saglabāt Testu",
+    createTestProfileTitle: "Izveidot Jaunu Testu",
+    editTestProfileTitle: "Rediģēt Testa Detaļas",
 
-    // Wordle LV Game
+    msgQuestionNotFoundEdit: "Rediģējamais jautājums netika atrasts. Iespējams, tas tika dzēsts.",
+    
+    msgAttention: "Uzmanību!",
+    msgPleaseEnterAnswer: "Lūdzu, ievadiet atbildi.",
+    msgPleaseSelectAnswer: "Lūdzu, izvēlieties atbildi.",
+    msgPleaseAnswerLast: "Lūdzu, atbildiet uz pēdējo jautājumu pirms iesniegšanas.",
+    timerMustBePositive: "Ja taimeris ir ieslēgts, tā ilgumam jābūt lielākam par 0.",
+    msgErrorTopicCountExceedsAvailable: "Nevar atlasīt vairāk par {available} jautājumiem tēmai '{topicName}'. Jūs mēģinājāt atlasīt {selected}.",
+    msgErrorNoQuestionsSelectedByTopic: "Lūdzu, atlasiet vismaz vienu jautājumu, ja izmantojat režīmu 'Norādīt pa tēmām'.",
+    timerNotEnabled: "Nav aktīvs",
+    timeMinutesSeconds: "{minutes} min {seconds} sek",
+
+    dataSource: "Datu avots",
+    dataSourceBrowserMemory: "Pārlūka atmiņa",
+
+    gamesHubTitle: "Spēļu Centrs",
+    navBackToGamesHub: "Atpakaļ uz Spēlēm",
+
     wordleLvGameTitle: "Wordle (LV)",
-    wordleLvGameDesc: "Відгадай 5-буквене латиське слово. У тебе 6 спроб!",
-    wordleAttemptsLeft: "Залишилося спроб: {count}",
-    wordleInvalidWordLength: "Слово має містити {length} літер.",
-    wordleNotInWordList: "Такого слова немає у списку.",
-    wordleWinMessage: "Вітаю! Ти відгадав слово: {word}",
-    wordleLossMessage: "На жаль, не вдалося. Правильне слово було: {word}",
-    wordlePlayAgain: "Грати Ще",
-    wordleKeyboardEnter: "Ввести",
-    wordleKeyboardBackspace: "Стерти",
-    wordleNewGame: "Нова Гра",
-    wordleHint: "Підказка",
-    wordleHintUsedOrUnavailable: "Підказку вже використано або вона недоступна.",
+    wordleLvGameDesc: "Uzmini 5 burtu vārdu latviešu valodā. Tev ir 6 mēģinājumi!",
+    wordleAttemptsLeft: "Atlikušie mēģinājumi: {count}",
+    wordleInvalidWordLength: "Vārdam jābūt {length} burtus garam.",
+    wordleNotInWordList: "Šāda vārda nav sarakstā.",
+    wordleWinMessage: "Apsveicu! Tu uzminēji vārdu: {word}",
+    wordleLossMessage: "Diemžēl neizdevās. Pareizais vārds bija: {word}",
+    wordlePlayAgain: "Spēlēt Vēlreiz",
+    wordleKeyboardEnter: "Ievadīt",
+    wordleKeyboardBackspace: "Dzēst",
+    wordleNewGame: "Jauna Spēle",
+    wordleHint: "Pačukstēt",
+    wordleHintUsedOrUnavailable: "Mājiņa jau izmantota vai nav pieejama.",
 
-    // Number Cruncher Game
-    numberCruncherGameTitle: "Швидкий Рахунок",
-    numberCruncherGameDesc: "Перевір свої математичні навички, розв'язуючи приклади на час!",
-    ncSelectDifficulty: "Обери Складність:",
-    ncDifficultyEasy: "Легка",
-    ncDifficultyMedium: "Середня",
-    ncDifficultyHard: "Складна",
-    ncSelectMode: "Обери Режим:",
-    ncModeAdd: "Тільки Додавання",
-    ncModeSubtract: "Тільки Віднімання",
-    ncModeMultiply: "Тільки Множення",
-    ncModeDivide: "Тільки Ділення",
-    ncModeMixed: "Змішаний (Всі Типи)",
-    ncStartGame: "Почати Гру!",
-    ncScore: "Рахунок: {score}",
-    ncTimeLeft: "Час: {time}с",
-    ncEnterAnswer: "Введи відповідь...",
-    ncSubmitAnswer: "Надіслати",
-    ncCorrect: "Правильно!",
-    ncIncorrect: "Неправильно.",
-    ncGameOver: "Гра Закінчена!",
-    ncFinalScore: "Твій кінцевий рахунок: {score} очок",
+    numberCruncherGameTitle: "Ātrais Rēķins",
+    numberCruncherGameDesc: "Pārbaudi savas matemātikas prasmes, risinot uzdevumus laikā!",
+    ncSelectDifficulty: "Izvēlies Grūtības Pakāpi:",
+    ncDifficultyEasy: "Viegla",
+    ncDifficultyMedium: "Vidēja",
+    ncDifficultyHard: "Grūta",
+    ncSelectMode: "Izvēlies Režīmu:",
+    ncModeAdd: "Tikai Saskaitīšana",
+    ncModeSubtract: "Tikai Atņemšana",
+    ncModeMultiply: "Tikai Reizinīšana",
+    ncModeDivide: "Tikai Dalīšana",
+    ncModeMixed: "Jaukts (Visi Veidi)",
+    ncStartGame: "Sākt Spēli!",
+    ncScore: "Punkti: {score}",
+    ncTimeLeft: "Laiks: {time}s",
+    ncEnterAnswer: "Ievadi atbildi...",
+    ncSubmitAnswer: "Iesniegt",
+    ncCorrect: "Pareizi!",
+    ncIncorrect: "Nepareizi.",
+    ncGameOver: "Spēle Beigusies!",
+    ncFinalScore: "Tavs gala rezultāts: {score} punkti",
     
-    // Flashcards
-    flashcardDecksListTitle: "Колоди Флеш-карток",
-    flashcardCreateNewDeck: "Створити Нову Колоду",
-    flashcardNoDecks: "Ще не створено жодної колоди карток.",
-    flashcardDeckCardsCount: "Карток: {count}",
-    flashcardDeckOpenHub: "Відкрити Колоду",
-    flashcardDeckEditDetails: "Редагувати Деталі",
-    flashcardDeckDelete: "Видалити Колоду",
-    flashcardDeckNameLabel: "Назва Колоди",
-    flashcardDeckDescLabel: "Опис (необов'язково)",
-    flashcardSaveDeck: "Зберегти Колоду",
-    flashcardDeckNameRequired: "Назва колоди є обов'язковою.",
-    flashcardDeckSaved: "Колоду збережено!",
-    flashcardDeckDeleted: "Колоду видалено.",
-    flashcardConfirmDeleteDeckTitle: "Підтвердити Видалення Колоди",
-    flashcardConfirmDeleteDeckText: "Ви дійсно бажаєте видалити колоду '{name}' та всі її картки?",
-    navBackToDecks: "Назад до Колод",
-    
-    flashcardDeckHubTitle: "Колода: {name}",
-    flashcardDeckStartStudying: "Почати Вивчення",
-    flashcardDeckAddCard: "Додати Картку",
-    flashcardDeckManageCards: "Керувати Картками",
-    flashcardDeckNoCards: "У цій колоді ще немає карток.",
-    flashcardEditCard: "Редагувати",
-    flashcardDeleteCard: "Видалити",
-    flashcardConfirmDeleteCardTitle: "Підтвердити Видалення Картки",
-    flashcardConfirmDeleteCardText: "Ви дійсно бажаєте видалити цю картку?",
-    flashcardCardDeleted: "Картку видалено.",
-    
-    flashcardCreateEditCardTitleAdd: "Додати Нову Картку",
-    flashcardCreateEditCardTitleEdit: "Редагувати Картку",
-    flashcardFrontTextLabel: "Лицьова сторона (Питання/Слово)",
-    flashcardFrontImageLabel: "Зображення Лицьової (необов'язково)",
-    flashcardBackTextLabel: "Зворотна сторона (Відповідь/Переклад)",
-    flashcardBackImageLabel: "Зображення Зворотної (необов'язково)",
-    flashcardSaveCard: "Зберегти Картку",
-    flashcardCardFrontTextRequired: "Текст лицьової сторони картки є обов'язковим.",
-    flashcardCardSaved: "Картку збережено!",
-    altPreview: "Попередній перегляд",
-    
-    flashcardStudyModeTitle: "Режим Вивчення: {name}",
-    flashcardCardXofY: "Картка {current} з {total}",
-    flashcardFront: "Лицьова",
-    flashcardBack: "Зворотна",
-    flashcardFlipCard: "Перевернути",
-    flashcardPreviousCard: "Попередня",
-    flashcardNextCard: "Наступна",
-    flashcardStudyEnd: "Завершити Вивчення",
-    flashcardShuffleCards: "Перемішати Картки",
+    flashcardDecksListTitle: "Zibatmiņu Kartīšu Komplekti",
+    flashcardCreateNewDeck: "Izveidot Jaunu Komplektu",
+    flashcardNoDecks: "Vēl nav izveidots neviens kartīšu komplekts.",
+    flashcardDeckCardsCount: "Kartītes: {count}",
+    flashcardDeckOpenHub: "Atvērt Komplektu",
+    flashcardDeckEditDetails: "Rediģēt Detaļas",
+    flashcardDeckDelete: "Dzēst Komplektu",
+    flashcardDeckNameLabel: "Komplekta Nosaukums",
+    flashcardDeckDescLabel: "Apraksts (nav obligāts)",
+    flashcardSaveDeck: "Saglabāt Komplektu",
+    flashcardDeckNameRequired: "Komplekta nosaukums ir obligāts.",
+    flashcardDeckSaved: "Komplekts saglabāts!",
+    flashcardDeckDeleted: "Komplekts dzēsts.",
+    flashcardConfirmDeleteDeckTitle: "Apstiprināt Komplekta Dzēšanu",
+    flashcardConfirmDeleteDeckText: "Vai tiešām vēlaties dzēst komplektu '{name}' un visas tā kartītes?",
+    navBackToDecks: "Atpakaļ pie Komplektiem",
 
-    // Articles
-    navArticles: "Статті",
-    articlesListTitle: "Список Статей",
-    articleFilterByCategory: "Фільтрувати за Категорією",
-    articleAllCategories: "Всі Категорії",
-    articleNoArticles: "На даний момент статті відсутні.",
-    articleReadStatus: "Статус: {status}",
-    statusRead: "Прочитано",
-    statusUnread: "Не прочитано",
-    articleMarkAsRead: "Відзначити як Прочитане",
-    articlePublishedOn: "Опубліковано: {date}",
-    articleAuthor: "Автор: {author}",
-    articleRead: "Читати Статтю",
-    navBackToArticles: "Назад до Статей",
-    articleNoContentPlaceholder: "Зміст статті недоступний.",
-    articleNoExcerptFallback: "Короткий опис відсутній.",
+    flashcardDeckHubTitle: "Komplekts: {name}",
+    flashcardDeckStartStudying: "Sākt Mācīties",
+    flashcardDeckAddCard: "Pievienot Kartīti",
+    flashcardDeckManageCards: "Pārvaldīt Kartītes",
+    flashcardDeckNoCards: "Šajā komplektā vēl nav kartīšu.",
+    flashcardEditCard: "Rediģēt",
+    flashcardDeleteCard: "Dzēst",
+    flashcardConfirmDeleteCardTitle: "Apstiprināt Kartītes Dzēšanu",
+    flashcardConfirmDeleteCardText: "Vai tiešām vēlaties dzēst šo kartīti?",
+    flashcardCardDeleted: "Kartīte dzēsta.",
+
+    flashcardCreateEditCardTitleAdd: "Pievienot Jaunu Kartīti",
+    flashcardCreateEditCardTitleEdit: "Rediģēt Kartīti",
+    flashcardFrontTextLabel: "Priekšpuse (Jautājums/Vārds)",
+    flashcardFrontImageLabel: "Priekšpuses Attēls (neobligāts)",
+    flashcardBackTextLabel: "Aizmugure (Atbilde/Tulkojums)",
+    flashcardBackImageLabel: "Aizmugures Attēls (neobligāts)",
+    flashcardSaveCard: "Saglabāt Kartīti",
+    flashcardCardFrontTextRequired: "Kartītes priekšpuses teksts ir obligāts.",
+    flashcardCardSaved: "Kartīte saglabāta!",
+    altPreview: "Priekšskatījums",
+
+    flashcardStudyModeTitle: "Mācīšanās Režīms: {name}",
+    flashcardCardXofY: "Kartīte {current} no {total}",
+    flashcardFront: "Priekšpuse",
+    flashcardBack: "Aizmugure",
+    flashcardFlipCard: "Apgriezt",
+    flashcardPreviousCard: "Iepriekšējā",
+    flashcardNextCard: "Nākamā",
+    flashcardStudyEnd: "Beigt Mācīšanos",
+    flashcardShuffleCards: "Jaukt Kartītes",
+
+    navArticles: "Raksti",
+    articlesListTitle: "Rakstu Saraksts",
+    articleFilterByCategory: "Filtrēt pēc Kategorijas",
+    articleAllCategories: "Visas Kategorijas",
+    articleNoArticles: "Pašlaik nav pieejamu rakstu.",
+    articleReadStatus: "Statuss: {status}",
+    statusRead: "Izlasīts",
+    statusUnread: "Nav lasīts",
+    articleMarkAsRead: "Atzīmēt kā Izlasītu",
+    articlePublishedOn: "Publicēts: {date}",
+    articleAuthor: "Autors: {author}",
+    articleRead: "Lasīt Rakstu",
+    navBackToArticles: "Atpakaļ pie Rakstiem",
+    articleNoContentPlaceholder: "Raksta saturs nav pieejams.",
+    articleNoExcerptFallback: "Nav pieejams īss apraksts.",
         
-    // General
-    msgError: "Помилка",
-    totalQuestions: "Всього запитань:",
-    altQuestionImage: "Зображення запитання",
-    altOptionImage: "Зображення варіанту відповіді",
-    numberingNumbers: "Цифри (1, 2, 3...)",
-    numberingLettersUpper: "Великі літери (A, B, C...)",
-    numberingLettersLower: "Малі літери (a, b, c...)",
-    numberingNone: "Без нумерації",
-    navBackToHome: "Назад на Головну",
-    export: "Експорт",
-    import: "Імпорт",
-    msgImportXlsxCsvConfirm: "Підтвердити Імпорт XLSX/CSV",
-    msgImportXlsxCsvConfirmDetail: "Ви дійсно бажаєте імпортувати запитання з '{filename}' для тесту '{testName}'? Існуючі запитання буде замінено.",
-    msgXlsxImportedSuccessDetail: "{count} запитань з '{filename}' успішно імпортовано для тесту '{testName}'.",
-    msgErrorMcqNeedsMinOptions: "Для запитання з множинним вибором потрібно щонайменше {minCount} варіанти. Знайдено: {foundCount}.",
+    chatbotViewTitle: "AI Palīgs",
+    chatbotPlaceholder: "Rakstiet ziņu šeit...",
+    chatbotSend: "Sūtīt",
+    chatbotClearChat: "Notīrīt Tērzēšanu",
+    chatbotIsTyping: "AI raksta...",
+    chatbotErrorApi: "Neizdevās sazināties ar AI. Lūdzu, mēģiniet vēlāk.",
+    chatbotErrorApiKeyMissing: "AI funkcionalitāte nav pieejama. API atslēga nav konfigurēta.",
+
+    msgError: "Kļūda",
+    totalQuestions: "Kopā jautājumu:",
+    altQuestionImage: "Jautājuma attēls",
+    altOptionImage: "Atbildes varianta attēls",
+    numberingNumbers: "Cipari (1, 2, 3...)",
+    numberingLettersUpper: "Lielie burti (A, B, C...)",
+    numberingLettersLower: "Mazie burti (a, b, c...)",
+    numberingNone: "Bez numerācijas",
+    navBackToHome: "Back Home",
+    export: "Export",
+    import: "Import",
+    msgImportXlsxCsvConfirm: "Confirm XLSX/CSV Import",
+    msgImportXlsxCsvConfirmDetail: "Are you sure you want to import questions from '{filename}' for test '{testName}'? Existing questions will be replaced.",
+    msgXlsxImportedSuccessDetail: "{count} questions from '{filename}' successfully imported for test '{testName}'.",
+    msgErrorMcqNeedsMinOptions: "Multiple choice question needs at least {minCount} options. Found: {foundCount}.",
   }
 };
