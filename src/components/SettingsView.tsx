@@ -129,22 +129,44 @@ const TestSettingsView: React.FC = () => {
     if (activeProfile) {
       let settingsToSave = { ...currentSettings };
 
-      // Ensure numQuestions has a valid value before saving
-      if (!settingsToSave.numQuestions || settingsToSave.numQuestions < 1) {
-        settingsToSave.numQuestions = 1;
-      }
-
+      // Timer validation
       if(settingsToSave.enableTimer && settingsToSave.timerDurationMinutes <= 0){
         dispatch({type: 'OPEN_MESSAGE_MODAL', payload: {titleKey: 'msgValidationError', textKey: 'timerMustBePositive'}});
         return;
       }
 
-      if (settingsToSave.selectByTopic) {
+      // Topic-based selection validation and setup
+      if (selectionMode === 'topic') {
         const totalSelectedByTopic = Object.values(settingsToSave.topicQuestionCounts || {}).reduce((sum, num) => sum + (Number(num) || 0), 0);
         if (totalSelectedByTopic === 0) {
           dispatch({ type: 'OPEN_MESSAGE_MODAL', payload: { titleKey: 'msgValidationError', textKey: 'msgErrorNoQuestionsSelectedByTopic' } });
           return;
         }
+        settingsToSave = {
+          ...settingsToSave,
+          useAllQuestions: false,
+          selectByTopic: true,
+          numQuestions: totalSelectedByTopic // Set numQuestions to match total selected by topics
+        };
+      } else if (selectionMode === 'total') {
+        // Total questions mode
+        if (!settingsToSave.numQuestions || settingsToSave.numQuestions < 1) {
+          settingsToSave.numQuestions = 1;
+        }
+        settingsToSave = {
+          ...settingsToSave,
+          useAllQuestions: false,
+          selectByTopic: false,
+          topicQuestionCounts: {} // Clear topic selections
+        };
+      } else { // 'all' mode
+        settingsToSave = {
+          ...settingsToSave,
+          useAllQuestions: true,
+          selectByTopic: false,
+          topicQuestionCounts: {},
+          numQuestions: numQuestionsInProfile // Set to total available questions
+        };
       }
       
       dispatch({ 
@@ -153,7 +175,7 @@ const TestSettingsView: React.FC = () => {
       });
       dispatch({type: 'OPEN_MESSAGE_MODAL', payload: {titleKey: 'msgSettingsSaved', textKey: 'msgSettingsSavedDetail'}});
     } else {
-        dispatch({type: 'OPEN_MESSAGE_MODAL', payload: {titleKey: 'msgError', textKey: 'msgSavingErrorDetail'}});
+      dispatch({type: 'OPEN_MESSAGE_MODAL', payload: {titleKey: 'msgError', textKey: 'msgSavingErrorDetail'}});
     }
   };
   
